@@ -196,6 +196,11 @@ bool Task::wasSuccessful() const
     return m_state == State::Succeeded;
 }
 
+bool Task::wasNetworkFailure() const
+{
+    return m_wasNetworkFailure;
+}
+
 QString Task::failReason() const
 {
     return m_failReason;
@@ -215,6 +220,11 @@ void Task::propagateFromOther(Task* other)
     for (const auto& progress : other->getStepProgress()) {
         propagateStepProgress(*progress);
     }
+}
+
+void Task::setWasNetworkFailure(bool value)
+{
+    m_wasNetworkFailure = value;
 }
 
 void Task::logWarning(const QString& line)

@@ -43,6 +43,7 @@ SequentialTask::SequentialTask(QString task_name) : ConcurrentTask(task_name, 1)
 void SequentialTask::subTaskFailed(Task::Ptr task, const QString& msg)
 {
     qWarning() << msg;
+    setWasNetworkFailure(task->wasNetworkFailure());
     ConcurrentTask::subTaskFailed(task, msg);
     emitFailed(msg);
 }

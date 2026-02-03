@@ -19,7 +19,10 @@ void MinecraftLoadAndCheck::executeTask()
         return;
     }
     connect(m_task.get(), &Task::succeeded, this, &MinecraftLoadAndCheck::emitSucceeded);
-    connect(m_task.get(), &Task::failed, this, &MinecraftLoadAndCheck::emitFailed);
+    connect(m_task.get(), &Task::failed, this, [this](const QString& error) {
+        setWasNetworkFailure(m_task->wasNetworkFailure());
+        emitFailed(error);
+    });
     connect(m_task.get(), &Task::aborted, this, &MinecraftLoadAndCheck::emitAborted);
     propagateFromOther(m_task.get());
 }

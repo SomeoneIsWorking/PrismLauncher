@@ -57,16 +57,20 @@ class LaunchController : public Task {
     BaseInstance* instance() const { return m_instance; }
 
     void setLaunchMode(const LaunchMode mode) { m_wantedLaunchMode = mode; }
+    LaunchMode launchMode() const { return m_wantedLaunchMode; }
 
     void setOfflineName(const QString& offlineName) { m_offlineName = offlineName; }
+    QString offlineName() const { return m_offlineName; }
 
     void setProfiler(BaseProfilerFactory* profiler) { m_profiler = profiler; }
 
     void setParentWidget(QWidget* widget) { m_parentWidget = widget; }
 
     void setTargetToJoin(MinecraftTarget::Ptr targetToJoin) { m_targetToJoin = std::move(targetToJoin); }
+    MinecraftTarget::Ptr targetToJoin() const { return m_targetToJoin; }
 
     void setAccountToUse(MinecraftAccountPtr accountToUse) { m_accountToUse = std::move(accountToUse); }
+    MinecraftAccountPtr accountToUse() const { return m_accountToUse; }
 
     QString id() const { return m_instance->id(); }
 

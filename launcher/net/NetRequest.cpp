@@ -196,6 +196,7 @@ void NetRequest::downloadError(QNetworkReply::NetworkError error)
             qCCritical(logCat) << getUid().toString() << "HTTP status:" << replyStatusCode() << errorString();
         if (m_errorResponse.size() > 0)
             qCCritical(logCat) << getUid().toString() << "Response from server:" << m_errorResponse;
+        setWasNetworkFailure(true);
         m_state = State::Failed;
     }
 }

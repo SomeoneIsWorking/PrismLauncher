@@ -438,7 +438,10 @@ void LaunchController::onSucceeded()
 
 void LaunchController::onFailed(QString reason)
 {
-    if (m_instance->settings()->get("ShowConsoleOnError").toBool()) {
+    if (m_launcher) {
+        setWasNetworkFailure(m_launcher->wasNetworkFailure());
+    }
+    if (!m_wasNetworkFailure && m_instance->settings()->get("ShowConsoleOnError").toBool()) {
         APPLICATION->showInstanceWindow(m_instance, "console");
     }
     emitFailed(std::move(reason));

@@ -38,6 +38,7 @@ void TaskStepWrapper::updateFinished()
         m_task.reset();
         emitSucceeded();
     } else {
+        setWasNetworkFailure(m_task->wasNetworkFailure());
         QString reason = tr("Instance update failed because: %1\n\n").arg(m_task->failReason());
         m_task.reset();
         emit logLine(reason, MessageLevel::Fatal);

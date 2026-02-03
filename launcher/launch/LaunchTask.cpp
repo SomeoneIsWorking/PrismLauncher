@@ -108,6 +108,7 @@ void LaunchTask::onStepFinished()
             step->start();
         }
     } else {
+        setWasNetworkFailure(step->wasNetworkFailure());
         finalizeSteps(false, step->failReason());
     }
 }

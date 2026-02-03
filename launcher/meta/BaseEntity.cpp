@@ -176,7 +176,10 @@ void BaseEntityLoadTask::executeTask()
     dl->addValidator(new ParsingValidator(m_entity));
     m_task->addNetAction(dl);
     m_task->setAskRetry(false);
-    connect(m_task.get(), &Task::failed, this, &BaseEntityLoadTask::emitFailed);
+    connect(m_task.get(), &Task::failed, this, [this](QString reason) {
+        setWasNetworkFailure(m_task->wasNetworkFailure());
+        emitFailed(reason);
+    });
     connect(m_task.get(), &Task::succeeded, this, &BaseEntityLoadTask::emitSucceeded);
     connect(m_task.get(), &Task::succeeded, this, [this]() {
         m_entity->m_load_status = BaseEntity::LoadStatus::Remote;

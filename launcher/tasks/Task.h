@@ -99,6 +99,7 @@ class Task : public QObject, public QRunnable {
     bool isRunning() const;
     bool isFinished() const;
     bool wasSuccessful() const;
+    bool wasNetworkFailure() const;
 
     /*!
      * MultiStep tasks are combinations of multiple tasks into a single logical task.
@@ -194,6 +195,8 @@ class Task : public QObject, public QRunnable {
     //! The Task subclass must call this method when the task has failed
     virtual void emitFailed(QString reason = "");
 
+    void setWasNetworkFailure(bool value);
+
     virtual void propagateStepProgress(TaskStepProgress const& task_progress);
 
    public slots:
@@ -203,6 +206,7 @@ class Task : public QObject, public QRunnable {
 
    protected:
     State m_state = State::Inactive;
+    bool m_wasNetworkFailure = false;
     QStringList m_Warnings;
     QString m_failReason = "";
     QString m_status;

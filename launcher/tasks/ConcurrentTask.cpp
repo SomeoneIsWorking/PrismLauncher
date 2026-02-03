@@ -122,6 +122,7 @@ void ConcurrentTask::executeNextSubTask()
                 emitSucceeded();
             } else if (m_failed.count() == 1) {
                 auto task = m_failed.keys().first();
+                setWasNetworkFailure(task->wasNetworkFailure());
                 auto reason = task->failReason();
                 if (reason.isEmpty()) {  // clearly a bug somewhere
                     reason = tr("Task failed");
@@ -129,12 +130,17 @@ void ConcurrentTask::executeNextSubTask()
                 emitFailed(reason);
             } else {
                 QStringList failReason;
+                bool anyNetworkFailure = false;
                 for (auto t : m_failed) {
+                    if (t->wasNetworkFailure()) {
+                        anyNetworkFailure = true;
+                    }
                     auto reason = t->failReason();
                     if (!reason.isEmpty()) {
                         failReason << reason;
                     }
                 }
+                setWasNetworkFailure(anyNetworkFailure);
                 if (failReason.isEmpty()) {
                     emitFailed(tr("Multiple subtasks failed"));
                 } else {

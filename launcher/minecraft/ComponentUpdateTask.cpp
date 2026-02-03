@@ -781,6 +781,9 @@ void ComponentUpdateTask::remoteLoadFailed(size_t taskIndex, const QString& msg)
     }
     qCDebug(instanceProfileResolveC) << "Remote task" << taskIndex << "failed:" << msg;
     d->remoteLoadSuccessful = false;
+    if (taskSlot.task->wasNetworkFailure()) {
+        setWasNetworkFailure(true);
+    }
     taskSlot.succeeded = false;
     taskSlot.finished = true;
     d->remoteTasksInProgress--;

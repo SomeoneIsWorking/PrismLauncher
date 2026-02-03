@@ -1622,6 +1622,22 @@ void Application::controllerFinished()
     auto& extras = m_instanceExtras.at(id);
 
     const bool wasSuccessful = controller->wasSuccessful();
+
+    // Capture info for fallback
+    if (controller->wasNetworkFailure()) {
+        auto instance = controller->instance();
+        // preserve demo intent, otherwise force offline; either mode launches without network
+        auto retryMode = controller->launchMode() == LaunchMode::Demo ? LaunchMode::Demo : LaunchMode::Offline;
+        auto target = controller->targetToJoin();
+        auto account = controller->accountToUse();
+        auto offlineName = controller->offlineName();
+        qWarning() << "Launch failed due to network error, restarting in offline mode...";
+        QMetaObject::invokeMethod(this, [this, instance, retryMode, target, account, offlineName] {
+            launch(instance, retryMode, target, account, offlineName);
+        }, Qt::QueuedConnection);
+        return;
+    }
+
     // on success, do...
     if (wasSuccessful && controller->instance()->settings()->get("AutoCloseConsole").toBool()) {
         if (extras.window) {
