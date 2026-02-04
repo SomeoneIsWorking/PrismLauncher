@@ -1,0 +1,76 @@
+id: org.prismlauncher.PrismLauncher
+runtime: org.kde.Platform
+runtime-version: '6.10'
+sdk: org.kde.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.openjdk17
+command: prismlauncher
+finish-args:
+  - --share=ipc
+  - --socket=x11
+  - --socket=wayland
+  - --device=all
+  - --share=network
+  - --socket=pulseaudio
+  - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  - --filesystem=xdg-download:ro
+  - --filesystem=~/.ftba:ro
+  - --filesystem=/sys/kernel/mm/hugepages:ro
+  - --filesystem=/sys/kernel/mm/transparent_hugepage:ro
+  - --talk-name=org.freedesktop.Flatpak
+  - --talk-name=org.freedesktop.Notifications
+  - --system-talk-name=org.freedesktop.login1
+
+modules:
+  - flatpak/cmark.yml
+  - flatpak/tomlplusplus.yml
+
+  - name: libarchive
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      - -DLIBARCHIVE_QT_GUI=OFF
+      - -DENABLE_TAR=OFF
+      - -DENABLE_CPIO=OFF
+      - -DENABLE_CAT=OFF
+      - -DENABLE_TEST=OFF
+    sources:
+      - type: archive
+        url: https://github.com/libarchive/libarchive/archive/refs/tags/v3.7.7.tar.gz
+        sha256: fa62384995e8aa4f5a901c184fb5c91e56a29e24c05b6881a7f8fd5bbea694d2
+
+  - name: libqrencode
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+      - -DBUILD_SHARED_LIBS=ON
+      - -DWITH_TOOLS=OFF
+      - -DWITH_TESTS=OFF
+    sources:
+      - type: archive
+        url: https://github.com/fukuchi/libqrencode/archive/v4.1.1.tar.gz
+        sha256: 5385bc1b8c2f20f3b91d258bf8ccc8cf62023935df2d2676b5b67049f31a049c
+
+  - name: prismlauncher
+    buildsystem: cmake-ninja
+    builddir: true
+    config-opts:
+      - -DLauncher_BUILD_PLATFORM=flatpak
+      - -DLauncher_ENABLE_JAVA_DOWNLOADER=ON
+      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+    build-options:
+      append-path: /usr/lib/sdk/openjdk17/bin
+      env:
+        JAVA_HOME: /usr/lib/sdk/openjdk17/jvm/openjdk-17
+        JAVA_COMPILER: /usr/lib/sdk/openjdk17/jvm/openjdk-17/bin/javac
+    sources:
+      - type: dir
+        path: .
+    post-install:
+      - install -Dm755 ../flatpak/prime-run.sh /app/bin/prime-run
+      - mv /app/bin/prismlauncher /app/bin/prismlauncher.real
+      - install -Dm755 ../flatpak/prismlauncher-wrapper.sh /app/bin/prismlauncher

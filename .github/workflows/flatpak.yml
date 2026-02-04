@@ -1,0 +1,36 @@
+name: Flatpak Build
+
+on:
+  push:
+    branches: [ mmmmmm ]
+  pull_request:
+    branches: [ mmmmmm ]
+  workflow_dispatch:
+
+jobs:
+  flatpak:
+    name: "Flatpak Build (amd64)"
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      options: --privileged
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build Flatpak
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          bundle: prism-launcher.flatpak
+          manifest-path: org.prismlauncher.PrismLauncher.yml
+          cache: true
+          branch: stable
+          arch: x86_64
+
+      - name: Upload Flatpak Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: prism-launcher-flatpak
+          path: prism-launcher.flatpak

@@ -1,0 +1,13 @@
+name: cmark
+buildsystem: cmake-ninja
+builddir: true
+config-opts:
+  - -DCMAKE_BUILD_TYPE=Release
+  - -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+  - -DCMARK_TESTS=OFF
+  - -DCMARK_STATIC=ON
+  - -DCMARK_SHARED=OFF
+sources:
+  - type: archive
+    url: https://github.com/commonmark/cmark/archive/refs/tags/0.31.1.tar.gz
+    sha256: 3da93db5469c30588cfeb283d9d62edfc6ded9eb0edc10a4f5bbfb7d722ea802
