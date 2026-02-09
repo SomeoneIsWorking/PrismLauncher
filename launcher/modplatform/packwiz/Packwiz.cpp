@@ -274,24 +274,37 @@ auto V1::getIndexForMod(const QDir& index_dir, QString slug) -> Mod
     if (real_fname.isEmpty())
         return {};
 
+    QFile file(index_dir.absoluteFilePath(real_fname));
+    if (!file.open(QFile::ReadOnly)) {
+        return {};
+    }
+
     toml::table table;
-#if TOML_EXCEPTIONS
     try {
-        table = toml::parse_file(StringUtils::toStdString(index_dir.absoluteFilePath(real_fname)));
+#if TOML_EXCEPTIONS
+        table = toml::parse(file.readAll().toStdString());
+#else
+        toml::parse_result result = toml::parse(file.readAll().toStdString());
+        if (!result) {
+            qWarning() << QString("Could not open file %1!").arg(normalized_fname);
+            qWarning() << "Reason:" << result.error().description();
+            return {};
+        }
+        table = std::move(result).table();
+#endif
     } catch (const toml::parse_error& err) {
         qWarning() << QString("Could not open file %1!").arg(normalized_fname);
-        qWarning() << "Reason:" << QString(err.what());
+        qWarning() << "Reason (toml::parse_error):" << QString(err.what());
         return {};
-    }
-#else
-    toml::parse_result result = toml::parse_file(StringUtils::toStdString(index_dir.absoluteFilePath(real_fname)));
-    if (!result) {
+    } catch (const std::exception& err) {
         qWarning() << QString("Could not open file %1!").arg(normalized_fname);
-        qWarning() << "Reason:" << result.error().description();
+        qWarning() << "Reason (std::exception):" << err.what();
+        return {};
+    } catch (...) {
+        qWarning() << QString("Could not open file %1!").arg(normalized_fname);
+        qWarning() << "Reason (unknown exception)";
         return {};
     }
-    table = result.table();
-#endif
 
     // index_file.close();
 

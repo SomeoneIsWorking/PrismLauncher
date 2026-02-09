@@ -19,6 +19,37 @@ static const QRegularExpression s_newlineRegex("\r\n|\n|\r");
 
 namespace ModUtils {
 
+static const QStringList s_metadataPriority = {
+    "quilt.mod.json",
+    "fabric.mod.json",
+    "META-INF/mods.toml",
+    "META-INF/neoforge.mods.toml",
+    "mcmod.info",
+    "forgeversion.properties"
+};
+
+ModDetails parseMetadataFile(const QString& fileName, const QByteArray& data, const QString& manifestVersion)
+{
+    if (fileName == "quilt.mod.json") {
+        return ReadQuiltModInfo(data);
+    } else if (fileName == "fabric.mod.json") {
+        return ReadFabricModInfo(data);
+    } else if (fileName == "META-INF/mods.toml" || fileName == "META-INF/neoforge.mods.toml") {
+        auto details = ReadMCModTOML(data);
+        if (!details.mod_id.isEmpty()) {
+            if (details.version == "${file.jarVersion}" && !manifestVersion.isEmpty()) {
+                details.version = manifestVersion;
+            }
+        }
+        return details;
+    } else if (fileName == "mcmod.info") {
+        return ReadMCModInfo(data);
+    } else if (fileName == "forgeversion.properties") {
+        return ReadForgeInfo(data);
+    }
+    return {};
+}
+
 // NEW format
 // https://github.com/MinecraftForge/FML/wiki/FML-mod-information-file/c8d8f1929aff9979e322af79a59ce81f3e02db6a
 
@@ -133,19 +164,26 @@ ModDetails ReadMCModTOML(QByteArray contents)
     ModDetails details;
 
     toml::table tomlData;
-#if TOML_EXCEPTIONS
     try {
+#if TOML_EXCEPTIONS
         tomlData = toml::parse(contents.toStdString());
-    } catch ([[maybe_unused]] const toml::parse_error& err) {
-        return {};
-    }
 #else
-    toml::parse_result result = toml::parse(contents.toStdString());
-    if (!result) {
+        toml::parse_result result = toml::parse(contents.toStdString());
+        if (!result) {
+            return {};
+        }
+        tomlData = std::move(result).table();
+#endif
+    } catch (const toml::parse_error& err) {
+        qWarning() << "TOML parse error:" << err.what();
+        return {};
+    } catch (const std::exception& err) {
+        qWarning() << "General error while parsing TOML:" << err.what();
+        return {};
+    } catch (...) {
+        qWarning() << "Unknown error while parsing TOML";
         return {};
     }
-    tomlData = result.table();
-#endif
 
     // array defined by [[mods]]
     auto tomlModsArr = tomlData["mods"].as_array();
@@ -579,86 +617,43 @@ bool processZIP(Mod& mod, [[maybe_unused]] ProcessingLevel level)
 
     MMCZip::ArchiveReader zip(mod.fileinfo().filePath());
 
-    bool baseForgePopulated = false;
+    QMap<QString, QByteArray> filesFound;
     bool isNilMod = false;
-    bool isValid = false;
     QString manifestVersion = {};
     QByteArray nilData = {};
     QString nilFilePath = {};
 
-    if (!zip.parse([&details, &baseForgePopulated, &manifestVersion, &isValid, &nilData, &isNilMod, &nilFilePath](
-                       MMCZip::ArchiveReader::File* file, bool& stop) {
+    if (!zip.parse([&filesFound, &manifestVersion, &isNilMod, &nilData, &nilFilePath](
+                       MMCZip::ArchiveReader::File* file, [[maybe_unused]] bool& stop) {
             auto filePath = file->filename();
 
-            if (filePath == "META-INF/mods.toml" || filePath == "META-INF/neoforge.mods.toml") {
-                details = ReadMCModTOML(file->readAll());
-                isValid = true;
-                if (details.version == "${file.jarVersion}" && !manifestVersion.isEmpty()) {
-                    details.version = manifestVersion;
-                }
-                stop = details.version != "${file.jarVersion}";
-                baseForgePopulated = true;
+            if (s_metadataPriority.contains(filePath)) {
+                filesFound.insert(filePath, file->readAll());
                 return true;
             }
+
             if (filePath == "META-INF/MANIFEST.MF") {
-                // quick and dirty line-by-line parser
                 auto manifestLines = QString(file->readAll()).split(s_newlineRegex);
-                manifestVersion = "";
                 for (auto& line : manifestLines) {
                     if (line.startsWith("Implementation-Version: ", Qt::CaseInsensitive)) {
                         manifestVersion = line.remove("Implementation-Version: ", Qt::CaseInsensitive);
                         break;
                     }
                 }
-
-                // some mods use ${projectversion} in their build.gradle, causing this mess to show up in MANIFEST.MF
-                // also keep with forge's behavior of setting the version to "NONE" if none is found
                 if (manifestVersion.contains("task ':jar' property 'archiveVersion'") || manifestVersion == "") {
                     manifestVersion = "NONE";
                 }
-                if (baseForgePopulated) {
-                    details.version = manifestVersion;
-                    stop = true;
-                }
                 return true;
             }
-            if (filePath == "mcmod.info") {
-                details = ReadMCModInfo(file->readAll());
-                isValid = true;
-                stop = true;
-                return true;
-            }
-            if (filePath == "quilt.mod.json") {
-                details = ReadQuiltModInfo(file->readAll());
-                isValid = true;
-                stop = true;
-                return true;
-            }
-            if (filePath == "fabric.mod.json") {
-                details = ReadFabricModInfo(file->readAll());
-                isValid = true;
-                stop = true;
-                return true;
-            }
-            if (filePath == "forgeversion.properties") {
-                details = ReadForgeInfo(file->readAll());
-                isValid = true;
-                stop = true;
-                return true;
-            }
+
             if (filePath == "META-INF/nil/mappings.json") {
-                // nilloader uses the filename of the metadata file for the modid, so we can't know the exact filename
-                // thankfully, there is a good file to use as a canary so we don't look for nil meta all the time
                 isNilMod = true;
-                stop = !nilFilePath.isEmpty();
                 file->skip();
                 return true;
             }
-            // nilmods can shade nilloader to be able to run as a standalone agent - which includes nilloader's own meta file
             if (filePath.endsWith(".nilmod.css") && filePath != "nilloader.nilmod.css") {
                 nilData = file->readAll();
                 nilFilePath = filePath;
-                stop = isNilMod;
                 return true;
             }
             file->skip();
@@ -666,36 +661,51 @@ bool processZIP(Mod& mod, [[maybe_unused]] ProcessingLevel level)
         })) {
         return false;
     }
-    if (isNilMod) {
+
+    bool isValid = false;
+    for (const auto& fileName : s_metadataPriority) {
+        if (!filesFound.contains(fileName))
+            continue;
+
+        details = parseMetadataFile(fileName, filesFound.value(fileName), manifestVersion);
+
+        if (!details.mod_id.isEmpty()) {
+            isValid = true;
+            break;
+        }
+    }
+
+    if (!isValid && isNilMod) {
         details = ReadNilModInfo(nilData, nilFilePath);
         isValid = true;
     }
+
     if (isValid) {
         mod.setDetails(details);
         return true;
     }
-    return false;  // no valid mod found in archive
+    return false;
 }
 
 bool processFolder(Mod& mod, [[maybe_unused]] ProcessingLevel level)
 {
     ModDetails details;
 
-    QFileInfo mcmod_info(FS::PathCombine(mod.fileinfo().filePath(), "mcmod.info"));
-    if (mcmod_info.exists() && mcmod_info.isFile()) {
-        QFile mcmod(mcmod_info.filePath());
-        if (!mcmod.open(QIODevice::ReadOnly))
-            return false;
-        auto data = mcmod.readAll();
-        if (data.isEmpty() || data.isNull())
-            return false;
-        details = ReadMCModInfo(data);
-
-        mod.setDetails(details);
-        return true;
+    for (const auto& fileName : s_metadataPriority) {
+        QFileInfo info(FS::PathCombine(mod.fileinfo().filePath(), fileName));
+        if (info.exists() && info.isFile()) {
+            QFile file(info.filePath());
+            if (file.open(QIODevice::ReadOnly)) {
+                details = parseMetadataFile(fileName, file.readAll(), "");
+                if (!details.mod_id.isEmpty()) {
+                    mod.setDetails(details);
+                    return true;
+                }
+            }
+        }
     }
 
-    return false;  // no valid mcmod.info file found
+    return false;
 }
 
 bool processLitemod(Mod& mod, [[maybe_unused]] ProcessingLevel level)
