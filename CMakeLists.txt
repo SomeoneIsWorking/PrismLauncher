@@ -185,7 +185,7 @@ set(Launcher_LEGACY_FMLLIBS_BASE_URL "https://files.prismlauncher.org/fmllibs/" 
 ######## Set version numbers ########
 set(Launcher_VERSION_MAJOR 12)
 set(Launcher_VERSION_MINOR 0)
-set(Launcher_VERSION_PATCH 1)
+set(Launcher_VERSION_PATCH 2)
 
 set(Launcher_VERSION_NAME "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}")
 set(Launcher_VERSION_NAME4 "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}.0")
@@ -493,7 +493,6 @@ set_directory_properties(PROPERTIES EP_BASE External)
 FetchContent_Declare(lucent
     GIT_REPOSITORY https://github.com/SomeoneIsWorking/lucent.git
     GIT_TAG 12ea0779f229f829368a6adcecbeb22041b33a65
-    GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(lucent)
 
