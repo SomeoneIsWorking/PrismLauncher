@@ -64,7 +64,7 @@ bool ShareController::start(QString* error)
         return false;
     }
 
-    return m_offer.start(m_archivePath, error);
+    return m_offer.start(m_archivePath, m_instance->name(), error);
 }
 
 void ShareController::stop()

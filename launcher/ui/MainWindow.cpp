@@ -103,6 +103,7 @@
 #include "ui/dialogs/ExportPackDialog.h"
 #include "ui/dialogs/IconPickerDialog.h"
 #include "ui/dialogs/ImportResourceDialog.h"
+#include "ui/dialogs/LanImportDialog.h"
 #include "ui/dialogs/LanShareDialog.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "ui/dialogs/NewsDialog.h"
@@ -220,9 +221,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         connect(shareLanAction, &QAction::triggered, this, &MainWindow::on_actionShareInstanceLan_triggered);
         ui->actionExportInstance->setMenu(exportInstanceMenu);
 
-        auto* importLanAction = new QAction(tr("Import from local-network link..."), this);
-        connect(importLanAction, &QAction::triggered, this, &MainWindow::on_actionImportInstanceLan_triggered);
-        ui->fileMenu->insertAction(ui->actionAddInstance, importLanAction);
+        connect(ui->actionImportInstanceLan, &QAction::triggered, this, &MainWindow::on_actionImportInstanceLan_triggered);
     }
 
     // hide, disable and show stuff
@@ -1584,21 +1583,10 @@ void MainWindow::on_actionShareInstanceLan_triggered()
 
 void MainWindow::on_actionImportInstanceLan_triggered()
 {
-    bool accepted = false;
-    const QString link =
-        QInputDialog::getText(this, tr("Import from local network"), tr("Paste the LAN share link:"), QLineEdit::Normal, {}, &accepted)
-            .trimmed();
-    if (!accepted || link.isEmpty()) {
-        return;
+    LanImportDialog dialog(this);
+    if (dialog.exec() == QDialog::Accepted) {
+        processURLs({ dialog.selectedUrl() });
     }
-
-    const QUrl url = QUrl::fromUserInput(link);
-    QString error;
-    if (!Lan::ShareController::isLocalOfferUrl(url, &error)) {
-        CustomMessageBox::selectable(this, tr("Invalid LAN share link"), error, QMessageBox::Critical)->show();
-        return;
-    }
-    processURLs({ url });
 }
 
 void MainWindow::on_actionRenameInstance_triggered()

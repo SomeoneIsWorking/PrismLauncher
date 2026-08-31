@@ -53,6 +53,8 @@ set(CORE_SOURCES
     InstanceImportTask.cpp
     lan/LanOffer.h
     lan/LanOffer.cpp
+    lan/LanDiscovery.h
+    lan/LanDiscovery.cpp
     lan/LanShareController.h
     lan/LanShareController.cpp
 
@@ -1063,6 +1065,8 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ExportInstanceDialog.h
     ui/dialogs/LanShareDialog.cpp
     ui/dialogs/LanShareDialog.h
+    ui/dialogs/LanImportDialog.cpp
+    ui/dialogs/LanImportDialog.h
     ui/dialogs/ExportPackDialog.cpp
     ui/dialogs/ExportPackDialog.h
     ui/dialogs/ExportToModListDialog.cpp

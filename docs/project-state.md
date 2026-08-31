@@ -44,18 +44,21 @@ sharing is added.
 
 Partial. `Lan::ShareController` creates the instance archive and `Lan::Offer`
 owns the explicit temporary capability-protected local-network offer, while
-`LanShareDialog` exposes its Start and Stop actions. `LanOffer` proves a
-successful byte-for-byte transfer in the build environment.
+`LanShareDialog` exposes its Start and Stop actions. Active offers announce
+their capability URLs over a bounded UDP LAN-discovery channel. `LanOffer`
+proves a successful byte-for-byte transfer in the build environment.
 
 Gap: the combined launcher build and live local-network transfer have not yet
 verified this source implementation.
 
 ### S004 — Authorised recipient import
 
-Partial. The File menu accepts a validated direct local-network link and hands
-the URL to the established `processURLs`/`InstanceImportTask` path.
+Partial. `Add Instance -> Import from LAN...` listens only while its dialog is
+open, discovers active offers automatically, and hands the selected validated
+URL to the established `processURLs`/`InstanceImportTask` path.
 
-Gap: a live receiver import has not yet verified this source implementation.
+Gap: a live receiver import between two installed launchers has not yet
+verified this source implementation.
 
 ### S005 — Bounded transfer authority
 

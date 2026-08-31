@@ -141,7 +141,7 @@
     <property name="toolTipsVisible">
      <bool>true</bool>
     </property>
-    <addaction name="actionAddInstance"/>
+    <addaction name="menuAddInstance"/>
     <addaction name="separator"/>
     <addaction name="actionLaunchInstance"/>
     <addaction name="actionKillInstance"/>
@@ -156,6 +156,13 @@
     <addaction name="separator"/>
     <addaction name="actionSettings"/>
     <addaction name="actionCloseWindow"/>
+    <widget class="QMenu" name="menuAddInstance">
+     <property name="title">
+      <string>Add Instance</string>
+     </property>
+     <addaction name="actionAddInstance"/>
+     <addaction name="actionImportInstanceLan"/>
+    </widget>
    </widget>
    <widget class="QMenu" name="editMenu">
     <property name="title">
@@ -292,6 +299,14 @@
    </property>
    <property name="toolTip">
     <string>Add a new instance.</string>
+   </property>
+  </action>
+  <action name="actionImportInstanceLan">
+   <property name="text">
+    <string>Import from LAN...</string>
+   </property>
+   <property name="toolTip">
+    <string>Find and import an instance shared by another Prism Launcher on the local network.</string>
    </property>
   </action>
   <action name="actionCheckUpdate">
