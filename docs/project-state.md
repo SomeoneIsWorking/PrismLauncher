@@ -99,11 +99,12 @@ Gap: current user-facing verification has not been recorded in this inventory.
 ### S010 — Launcher configuration and maintenance
 
 Partial. The settings, logging, presentation, and updater subsystems own these
-launcher capabilities. Builds now default their updater release source to this
-fork's GitHub releases, and tagged CI releases publish rather than remain
-drafts.
+launcher capabilities. The Flatpak manifest stages the pinned Lucent source
+outside the network-isolated build sandbox; a local Release build installed
+version 12.0.4 to the user's `org.prismlauncher.PrismLauncher` Flatpak
+deployment on 2026-08-31.
 
-Gap: current user-facing verification has not been recorded in this inventory.
+Gap: the user-facing updater workflow has not been verified.
 
 ### S011 — Direct desktop shortcut
 
