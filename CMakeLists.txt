@@ -185,7 +185,7 @@ set(Launcher_LEGACY_FMLLIBS_BASE_URL "https://files.prismlauncher.org/fmllibs/" 
 ######## Set version numbers ########
 set(Launcher_VERSION_MAJOR 12)
 set(Launcher_VERSION_MINOR 0)
-set(Launcher_VERSION_PATCH 0)
+set(Launcher_VERSION_PATCH 1)
 
 set(Launcher_VERSION_NAME "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}")
 set(Launcher_VERSION_NAME4 "${Launcher_VERSION_MAJOR}.${Launcher_VERSION_MINOR}.${Launcher_VERSION_PATCH}.0")
@@ -195,7 +195,7 @@ set(Launcher_VERSION_NAME4_COMMA "${Launcher_VERSION_MAJOR},${Launcher_VERSION_M
 set(Launcher_BUILD_PLATFORM "unknown" CACHE STRING "A short string identifying the platform that this build was built for. Only used to display in the about dialog.")
 
 # Github repo URL with releases for updater
-set(Launcher_UPDATER_GITHUB_REPO "https://github.com/PrismLauncher/PrismLauncher" CACHE STRING "Base github URL for the updater.")
+set(Launcher_UPDATER_GITHUB_REPO "https://github.com/SomeoneIsWorking/PrismLauncher" CACHE STRING "Base GitHub URL for this launcher's updater releases.")
 
 # Name to help updater identify valid artifacts
 set(Launcher_BUILD_ARTIFACT "" CACHE STRING "Artifact name to help the updater identify valid artifacts.")
@@ -485,7 +485,17 @@ endif()
 ################################ Included Libs ################################
 
 include(ExternalProject)
+include(FetchContent)
 set_directory_properties(PROPERTIES EP_BASE External)
+
+# LAN offers use Lucent only for bounded HTTP transport. Prism retains offer
+# policy, archive generation, and import validation; pin the maintained fork.
+FetchContent_Declare(lucent
+    GIT_REPOSITORY https://github.com/SomeoneIsWorking/lucent.git
+    GIT_TAG 12ea0779f229f829368a6adcecbeb22041b33a65
+    GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(lucent)
 
 option(NBT_BUILD_SHARED "Build NBT shared library" OFF)
 option(NBT_USE_ZLIB "Build NBT library with zlib support" OFF)
