@@ -29,10 +29,10 @@ LanShareDialog::LanShareDialog(BaseInstance* instance, QWidget* parent)
     setMinimumWidth(560);
 
     auto* layout = new QVBoxLayout(this);
-    auto* description =
-        new QLabel(tr("Prism will create a temporary ZIP for the selected instance and offer it only while this dialog stays open. "
-                      "Send a displayed link to the other Prism Launcher. Anyone who has that link on your local network can download it."),
-                   this);
+    auto* description = new QLabel(
+        tr("Prism will create a temporary ZIP for the selected instance and offer it only while this dialog stays open. "
+           "Other Prism Launchers can find it automatically from Add Instance > Import from LAN. You can also copy a link as a fallback."),
+        this);
     description->setWordWrap(true);
     layout->addWidget(description);
 
@@ -41,7 +41,7 @@ LanShareDialog::LanShareDialog(BaseInstance* instance, QWidget* parent)
     layout->addWidget(m_statusLabel);
 
     m_links->setReadOnly(true);
-    m_links->setPlaceholderText(tr("Start sharing to create a LAN link."));
+    m_links->setPlaceholderText(tr("Start sharing to announce this instance on the LAN."));
     layout->addWidget(m_links);
 
     auto* controls = new QDialogButtonBox(this);

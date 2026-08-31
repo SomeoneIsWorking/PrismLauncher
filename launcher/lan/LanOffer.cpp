@@ -2,6 +2,7 @@
 
 #include "lan/LanOffer.h"
 
+#include "lan/LanDiscovery.h"
 #include "lucent/http.h"
 
 #include <QAbstractSocket>
@@ -80,7 +81,7 @@ Offer::~Offer()
     stop();
 }
 
-bool Offer::start(const QString& archivePath, QString* error)
+bool Offer::start(const QString& archivePath, const QString& instanceName, QString* error)
 {
     const QFileInfo archive(archivePath);
     if (!archive.isFile() || !archive.isReadable()) {
@@ -114,6 +115,12 @@ bool Offer::start(const QString& archivePath, QString* error)
         *error = QObject::tr("Could not start the local-network share. Check whether a firewall is blocking Prism Launcher.");
         return false;
     }
+    m_discovery = std::make_unique<Advertiser>();
+    if (!m_discovery->start(instanceName, urls(), error)) {
+        m_discovery.reset();
+        stop();
+        return false;
+    }
     return true;
 }
 
@@ -122,6 +129,10 @@ void Offer::stop()
     if (m_server) {
         m_server->stop();
         m_server.reset();
+    }
+    if (m_discovery) {
+        m_discovery->stop();
+        m_discovery.reset();
     }
     m_capability.clear();
     m_archivePath.clear();

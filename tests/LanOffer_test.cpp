@@ -66,7 +66,7 @@ void LanOfferTest::streamsOnlyTheCapabilityUrl()
 
     Lan::Offer offer;
     QString error;
-    QVERIFY2(offer.start(archivePath, &error), qPrintable(error));
+    QVERIFY2(offer.start(archivePath, QStringLiteral("Test instance"), &error), qPrintable(error));
     const auto urls = offer.urls();
     QVERIFY(!urls.empty());
 
