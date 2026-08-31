@@ -61,6 +61,7 @@
 #include <QInputDialog>
 #include <QKeyEvent>
 #include <QLabel>
+#include <QLineEdit>
 #include <QMainWindow>
 #include <QMenu>
 #include <QMenuBar>
@@ -84,6 +85,7 @@
 #include <java/JavaUtils.h>
 #include <launch/LaunchTask.h>
 #include <minecraft/MinecraftInstance.h>
+#include <minecraft/ShortcutUtils.h>
 #include <minecraft/auth/AccountList.h>
 #include <net/ApiDownload.h>
 #include <net/NetJob.h>
@@ -96,12 +98,12 @@
 #include "ui/ViewLogWindow.h"
 #include "ui/dialogs/AboutDialog.h"
 #include "ui/dialogs/CopyInstanceDialog.h"
-#include "ui/dialogs/CreateShortcutDialog.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ExportInstanceDialog.h"
 #include "ui/dialogs/ExportPackDialog.h"
 #include "ui/dialogs/IconPickerDialog.h"
 #include "ui/dialogs/ImportResourceDialog.h"
+#include "ui/dialogs/LanShareDialog.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "ui/dialogs/NewsDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -123,6 +125,8 @@
 #include "minecraft/mod/tasks/LocalResourceParse.h"
 
 #include "modplatform/ModIndex.h"
+
+#include "lan/LanShareController.h"
 #include "modplatform/flame/FlameAPI.h"
 #include "modplatform/flame/FlameModIndex.h"
 
@@ -211,7 +215,14 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         exportInstanceMenu->addAction(ui->actionExportInstanceZip);
         exportInstanceMenu->addAction(ui->actionExportInstanceMrPack);
         exportInstanceMenu->addAction(ui->actionExportInstanceFlamePack);
+        exportInstanceMenu->addSeparator();
+        auto* shareLanAction = exportInstanceMenu->addAction(tr("Share on local network..."));
+        connect(shareLanAction, &QAction::triggered, this, &MainWindow::on_actionShareInstanceLan_triggered);
         ui->actionExportInstance->setMenu(exportInstanceMenu);
+
+        auto* importLanAction = new QAction(tr("Import from local-network link..."), this);
+        connect(importLanAction, &QAction::triggered, this, &MainWindow::on_actionImportInstanceLan_triggered);
+        ui->fileMenu->insertAction(ui->actionAddInstance, importLanAction);
     }
 
     // hide, disable and show stuff
@@ -655,7 +666,7 @@ void MainWindow::repopulateAccountsMenu()
 
     auto accounts = APPLICATION->accounts();
     MinecraftAccountPtr defaultAccount = accounts->defaultAccount();
-    
+
     bool canChangeSkin = defaultAccount && (defaultAccount->accountType() == AccountType::MSA) && !defaultAccount->isActive();
     ui->actionManageSkins->setEnabled(canChangeSkin);
 
@@ -1563,6 +1574,33 @@ void MainWindow::on_actionExportInstanceFlamePack_triggered()
     }
 }
 
+void MainWindow::on_actionShareInstanceLan_triggered()
+{
+    if (m_selectedInstance) {
+        LanShareDialog dialog(m_selectedInstance, this);
+        dialog.exec();
+    }
+}
+
+void MainWindow::on_actionImportInstanceLan_triggered()
+{
+    bool accepted = false;
+    const QString link =
+        QInputDialog::getText(this, tr("Import from local network"), tr("Paste the LAN share link:"), QLineEdit::Normal, {}, &accepted)
+            .trimmed();
+    if (!accepted || link.isEmpty()) {
+        return;
+    }
+
+    const QUrl url = QUrl::fromUserInput(link);
+    QString error;
+    if (!Lan::ShareController::isLocalOfferUrl(url, &error)) {
+        CustomMessageBox::selectable(this, tr("Invalid LAN share link"), error, QMessageBox::Critical)->show();
+        return;
+    }
+    processURLs({ url });
+}
+
 void MainWindow::on_actionRenameInstance_triggered()
 {
     if (m_selectedInstance) {
@@ -1629,13 +1667,12 @@ void MainWindow::on_actionKillInstance_triggered()
 
 void MainWindow::on_actionCreateInstanceShortcut_triggered()
 {
-    if (!m_selectedInstance)
+    if (!m_selectedInstance) {
         return;
+    }
 
-    CreateShortcutDialog shortcutDlg(m_selectedInstance, this);
-    if (!shortcutDlg.exec())
-        return;
-    shortcutDlg.createShortcut();
+    ShortcutUtils::createInstanceShortcutOnDesktop(
+        { m_selectedInstance, m_selectedInstance->name(), tr("instance"), this, {}, {}, ShortcutTarget::Desktop });
 }
 
 void MainWindow::taskEnd()

@@ -32,6 +32,8 @@ set(CORE_SOURCES
     archive/ArchiveWriter.h
     archive/ExportToZipTask.cpp
     archive/ExportToZipTask.h
+    archive/InstanceArchive.cpp
+    archive/InstanceArchive.h
     archive/ExtractZipTask.cpp
     archive/ExtractZipTask.h
     StringUtils.h
@@ -49,6 +51,10 @@ set(CORE_SOURCES
     InstanceCopyTask.cpp
     InstanceImportTask.h
     InstanceImportTask.cpp
+    lan/LanOffer.h
+    lan/LanOffer.cpp
+    lan/LanShareController.h
+    lan/LanShareController.cpp
 
     # Resource downloading task
     ResourceDownloadTask.h
@@ -1051,12 +1057,12 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/ProfileSetupDialog.h
     ui/dialogs/CopyInstanceDialog.cpp
     ui/dialogs/CopyInstanceDialog.h
-    ui/dialogs/CreateShortcutDialog.cpp
-    ui/dialogs/CreateShortcutDialog.h
     ui/dialogs/CustomMessageBox.cpp
     ui/dialogs/CustomMessageBox.h
     ui/dialogs/ExportInstanceDialog.cpp
     ui/dialogs/ExportInstanceDialog.h
+    ui/dialogs/LanShareDialog.cpp
+    ui/dialogs/LanShareDialog.h
     ui/dialogs/ExportPackDialog.cpp
     ui/dialogs/ExportPackDialog.h
     ui/dialogs/ExportToModListDialog.cpp
@@ -1258,6 +1264,7 @@ target_link_libraries(Launcher_logic
     qdcss
     BuildConfig
     Qt${QT_VERSION_MAJOR}::Widgets
+    lucent::lucent
 )
 
 if(TARGET PkgConfig::libqrencode)

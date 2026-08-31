@@ -44,20 +44,16 @@
 #include "FileIgnoreProxy.h"
 #include "QObjectPtr.h"
 #include "archive/ExportToZipTask.h"
+#include "archive/InstanceArchive.h"
 #include "ui/dialogs/CustomMessageBox.h"
 #include "ui/dialogs/ProgressDialog.h"
 #include "ui_ExportInstanceDialog.h"
 
 #include <FileSystem.h>
-#include <icons/IconList.h>
-#include <QDebug>
 #include <QFileInfo>
-#include <QPushButton>
-#include <QSaveFile>
 #include <QSortFilterProxyModel>
 #include <QStack>
 #include <functional>
-#include "Application.h"
 #include "SeparatorPrefixTree.h"
 
 ExportInstanceDialog::ExportInstanceDialog(BaseInstance* instance, QWidget* parent)
@@ -97,39 +93,6 @@ ExportInstanceDialog::~ExportInstanceDialog()
     delete m_ui;
 }
 
-/// Save icon to instance's folder is needed
-void SaveIcon(BaseInstance* m_instance)
-{
-    auto iconKey = m_instance->iconKey();
-    auto iconList = APPLICATION->icons();
-    auto mmcIcon = iconList->icon(iconKey);
-    if (!mmcIcon || mmcIcon->isBuiltIn()) {
-        return;
-    }
-    auto path = mmcIcon->getFilePath();
-    if (!path.isNull()) {
-        QFileInfo inInfo(path);
-        FS::copy(path, FS::PathCombine(m_instance->instanceRoot(), inInfo.fileName()))();
-        return;
-    }
-    auto& image = mmcIcon->m_images[mmcIcon->type()];
-    auto& icon = image.icon;
-    auto sizes = icon.availableSizes();
-    if (sizes.size() == 0) {
-        return;
-    }
-    auto areaOf = [](QSize size) { return size.width() * size.height(); };
-    QSize largest = sizes[0];
-    // find variant with largest area
-    for (auto size : sizes) {
-        if (areaOf(largest) < areaOf(size)) {
-            largest = size;
-        }
-    }
-    auto pixmap = icon.pixmap(largest);
-    pixmap.save(FS::PathCombine(m_instance->instanceRoot(), iconKey + ".png"));
-}
-
 void ExportInstanceDialog::doExport()
 {
     auto name = FS::RemoveInvalidFilenameChars(m_instance->name());
@@ -141,7 +104,7 @@ void ExportInstanceDialog::doExport()
         return;
     }
 
-    SaveIcon(m_instance);
+    MMCZip::saveInstanceIcon(m_instance);
 
     auto files = QFileInfoList();
     if (!MMCZip::collectFileListRecursively(m_instance->instanceRoot(), nullptr, &files,

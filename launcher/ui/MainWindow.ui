@@ -489,10 +489,10 @@
     <iconset theme="shortcut"/>
    </property>
    <property name="text">
-    <string>Create Shortcut</string>
+    <string>Create Desktop Shortcut</string>
    </property>
    <property name="toolTip">
-    <string>Creates a shortcut on a selected folder to launch the selected instance.</string>
+    <string>Creates a desktop shortcut using the selected instance's name.</string>
    </property>
   </action>
   <action name="actionNoAccountsAdded">
