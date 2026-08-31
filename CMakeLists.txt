@@ -489,11 +489,20 @@ include(FetchContent)
 set_directory_properties(PROPERTIES EP_BASE External)
 
 # LAN offers use Lucent only for bounded HTTP transport. Prism retains offer
-# policy, archive generation, and import validation; pin the maintained fork.
-FetchContent_Declare(lucent
-    GIT_REPOSITORY https://github.com/SomeoneIsWorking/lucent.git
-    GIT_TAG ed2f25c63385838d2e604b16b452da0671064984
-)
+# policy, archive generation, and import validation. Flatpak stages this
+# pinned source before entering its network-isolated build sandbox.
+set(LUCENT_SOURCE_DIR "" CACHE PATH "Pre-fetched Lucent source directory")
+if(LUCENT_SOURCE_DIR)
+    if(NOT EXISTS "${LUCENT_SOURCE_DIR}/CMakeLists.txt")
+        message(FATAL_ERROR "LUCENT_SOURCE_DIR does not contain a Lucent checkout: ${LUCENT_SOURCE_DIR}")
+    endif()
+    FetchContent_Declare(lucent SOURCE_DIR "${LUCENT_SOURCE_DIR}")
+else()
+    FetchContent_Declare(lucent
+        GIT_REPOSITORY https://github.com/SomeoneIsWorking/lucent.git
+        GIT_TAG ed2f25c63385838d2e604b16b452da0671064984
+    )
+endif()
 FetchContent_MakeAvailable(lucent)
 
 option(NBT_BUILD_SHARED "Build NBT shared library" OFF)

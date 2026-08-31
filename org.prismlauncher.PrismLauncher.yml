@@ -61,7 +61,8 @@ modules:
     config-opts:
       - -DLauncher_BUILD_PLATFORM=flatpak
       - -DLauncher_ENABLE_JAVA_DOWNLOADER=ON
-      - -DCMAKE_BUILD_TYPE=RelWithDebInfo
+      - -DCMAKE_BUILD_TYPE=Release
+      - -DLUCENT_SOURCE_DIR=../external/lucent
     build-options:
       append-path: /usr/lib/sdk/openjdk17/bin
       env:
@@ -70,6 +71,10 @@ modules:
     sources:
       - type: dir
         path: .
+      - type: git
+        url: https://github.com/SomeoneIsWorking/lucent.git
+        commit: ed2f25c63385838d2e604b16b452da0671064984
+        dest: external/lucent
     post-install:
       - install -Dm755 ../flatpak/prime-run.sh /app/bin/prime-run
       - mv /app/bin/prismlauncher /app/bin/prismlauncher.real
