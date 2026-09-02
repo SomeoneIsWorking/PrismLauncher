@@ -2,9 +2,15 @@ name: Flatpak Build
 
 on:
   push:
-    branches: [ mmmmmm ]
+    branches:
+      - main
+      - develop
+      - 'release-*'
   pull_request:
-    branches: [ mmmmmm ]
+    branches:
+      - main
+      - develop
+      - 'release-*'
   workflow_dispatch:
 
 jobs:
