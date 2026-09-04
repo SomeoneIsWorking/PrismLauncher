@@ -6,13 +6,13 @@ is in `docs/codemap.md`.
 
 | ID | Capability / observable outcome | State | Dependencies | Goals |
 |---|---|---|---|---|
-| S001 | The launcher manages and launches Minecraft instances | partial | — | G001 |
+| S001 | The launcher manages and launches Minecraft instances | verified | — | G001 |
 | S002 | Instances can use the established archive import and export paths | verified | S001 | G001,G003 |
 | S003 | Every running launcher automatically advertises its instance catalogue on the LAN | verified | S002 | G002 |
 | S004 | A recipient can discover and import an available instance from the New Instance window | verified | S002,S003 | G002 |
 | S005 | LAN transfer uses a bounded capability and preserves the existing importer as archive authority | verified | S002,S003,S004 | G002,G003 |
 | S006 | LAN import has focused positive and negative verification | verified | S003,S004,S005 | G003 |
-| S007 | Players can select, configure, and manage compatible Java runtimes | partial | S001 | G001 |
+| S007 | Players can select, configure, and manage compatible Java runtimes | verified | S001 | G001 |
 | S008 | Players can authenticate or use the launcher-supported account workflows | partial | S001 | G001 |
 | S009 | Players can browse and install supported mod-platform content | partial | S001 | G001 |
 | S010 | Players can configure launcher presentation, logging, and updates | partial | S001 | G001 |
@@ -28,17 +28,22 @@ capabilities whose current evidence is tracked independently.
 
 ## Current focus
 
-S001 — Current end-to-end instance management and launch evidence.
+S008 — Account workflow evidence.
 
 ## Capability details
 
 ### S001 — Instance management and launch
 
-Partial. The launcher contains the established instance and launch subsystems,
-but this inventory has not yet rerun the complete user-facing launch workflow.
+Verified. The GitHub-built 12.0.7 Flatpak selected the existing
+`Supermarket-pack` instance, applied its declared LWJGL 3.3.1, Minecraft
+1.20.1, intermediary, and Fabric Loader 0.19.3 components, started its
+configured Java 17 runtime, and reached a rendered Minecraft 1.20.1/Fabric main
+menu. Minecraft exited through its Quit action and recorded a clean
+`Stopping!` event.
 
-Gap: current end-to-end evidence, not a claim that source presence alone proves
-the outcome.
+Evidence: the 2026-09-04 packaged release run from commit `2960f237d`, with
+OpenAL initialized on the silent `No Output` device and no interactive desktop
+session used.
 
 ### S002 — Established archive workflows
 
@@ -103,10 +108,17 @@ UI run.
 
 ### S007 — Java runtime management
 
-Partial. The `launcher/java/` and `libraries/javacheck/` subsystems provide the
-current implementation boundary.
+Verified. The GitHub-built 12.0.7 Flatpak validated Microsoft Java 17.0.15 on
+`amd64` both normally and with the configured 4 GiB heap. Its managed-runtime
+workflow downloaded Mojang `java-runtime-gamma` 17.0.15 into an isolated
+launcher root, discovered and displayed the installation, and removed it
+through the confirmation flow. A maximum-memory change from 4096 MiB to 3072
+MiB made through the Java settings page persisted to the isolated launcher
+configuration.
 
-Gap: current user-facing verification has not been recorded in this inventory.
+Evidence: the 2026-09-04 Java settings and Installations workflows in packaged
+release 12.0.7 from commit `2960f237d`, including successful JavaCheck output
+and the resulting `MaxMemAlloc=3072` setting.
 
 ### S008 — Account workflows
 
