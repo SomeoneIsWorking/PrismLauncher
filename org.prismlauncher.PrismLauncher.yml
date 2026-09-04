@@ -14,6 +14,7 @@ finish-args:
   - --share=network
   - --socket=pulseaudio
   - --filesystem=xdg-run/app/com.discordapp.Discord:create
+  - --filesystem=xdg-desktop:create
   - --filesystem=xdg-download:ro
   - --filesystem=~/.ftba:ro
   - --filesystem=/sys/kernel/mm/hugepages:ro
