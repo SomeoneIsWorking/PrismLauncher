@@ -103,8 +103,6 @@
 #include "ui/dialogs/ExportPackDialog.h"
 #include "ui/dialogs/IconPickerDialog.h"
 #include "ui/dialogs/ImportResourceDialog.h"
-#include "ui/dialogs/LanImportDialog.h"
-#include "ui/dialogs/LanShareDialog.h"
 #include "ui/dialogs/NewInstanceDialog.h"
 #include "ui/dialogs/NewsDialog.h"
 #include "ui/dialogs/ProgressDialog.h"
@@ -127,7 +125,6 @@
 
 #include "modplatform/ModIndex.h"
 
-#include "lan/LanShareController.h"
 #include "modplatform/flame/FlameAPI.h"
 #include "modplatform/flame/FlameModIndex.h"
 
@@ -216,12 +213,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent), ui(new Ui::MainWi
         exportInstanceMenu->addAction(ui->actionExportInstanceZip);
         exportInstanceMenu->addAction(ui->actionExportInstanceMrPack);
         exportInstanceMenu->addAction(ui->actionExportInstanceFlamePack);
-        exportInstanceMenu->addSeparator();
-        auto* shareLanAction = exportInstanceMenu->addAction(tr("Share on local network..."));
-        connect(shareLanAction, &QAction::triggered, this, &MainWindow::on_actionShareInstanceLan_triggered);
         ui->actionExportInstance->setMenu(exportInstanceMenu);
-
-        connect(ui->actionImportInstanceLan, &QAction::triggered, this, &MainWindow::on_actionImportInstanceLan_triggered);
     }
 
     // hide, disable and show stuff
@@ -1570,22 +1562,6 @@ void MainWindow::on_actionExportInstanceFlamePack_triggered()
             ExportPackDialog dlg(instance, this, ModPlatform::ResourceProvider::FLAME);
             dlg.exec();
         }
-    }
-}
-
-void MainWindow::on_actionShareInstanceLan_triggered()
-{
-    if (m_selectedInstance) {
-        LanShareDialog dialog(m_selectedInstance, this);
-        dialog.exec();
-    }
-}
-
-void MainWindow::on_actionImportInstanceLan_triggered()
-{
-    LanImportDialog dialog(this);
-    if (dialog.exec() == QDialog::Accepted) {
-        processURLs({ dialog.selectedUrl() });
     }
 }
 

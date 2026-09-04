@@ -2,14 +2,11 @@
 
 #include "lan/LanOffer.h"
 
-#include "lan/LanDiscovery.h"
+#include "lan/LanNetwork.h"
 #include "lucent/http.h"
 
-#include <QAbstractSocket>
 #include <QFileInfo>
-#include <QHostAddress>
 #include <QList>
-#include <QNetworkInterface>
 #include <QObject>
 #include <QRandomGenerator>
 #include <QRegularExpression>
@@ -27,35 +24,11 @@ namespace {
 constexpr auto g_offerPathPrefix = "/instance/";
 constexpr auto g_capabilityHexLength = 64;
 
-bool isPrivateIpv4(const QHostAddress& address)
-{
-    return address.isInSubnet(QHostAddress("10.0.0.0"), 8) || address.isInSubnet(QHostAddress("172.16.0.0"), 12) ||
-           address.isInSubnet(QHostAddress("192.168.0.0"), 16) || address.isInSubnet(QHostAddress("169.254.0.0"), 16);
-}
-
-QList<QHostAddress> privateLanAddresses()
-{
-    QList<QHostAddress> addresses;
-    for (const auto& interface : QNetworkInterface::allInterfaces()) {
-        const auto flags = interface.flags();
-        if (!flags.testFlag(QNetworkInterface::IsUp) || !flags.testFlag(QNetworkInterface::IsRunning) ||
-            flags.testFlag(QNetworkInterface::IsLoopBack)) {
-            continue;
-        }
-        for (const auto& entry : interface.addressEntries()) {
-            const auto address = entry.ip();
-            if (address.protocol() == QAbstractSocket::IPv4Protocol && isPrivateIpv4(address) && !addresses.contains(address)) {
-                addresses.append(address);
-            }
-        }
-    }
-    return addresses;
-}
-
 QString randomCapability()
 {
     const auto randomHex = [](quint64 value) { return QString::number(value, 16).rightJustified(16, QChar('0')); };
-    return randomHex(QRandomGenerator::system()->generate64()) + randomHex(QRandomGenerator::system()->generate64());
+    return randomHex(QRandomGenerator::system()->generate64()) + randomHex(QRandomGenerator::system()->generate64()) +
+           randomHex(QRandomGenerator::system()->generate64()) + randomHex(QRandomGenerator::system()->generate64());
 }
 
 bool constantTimeEquals(std::string_view left, std::string_view right)
@@ -65,7 +38,7 @@ bool constantTimeEquals(std::string_view left, std::string_view right)
     }
     std::uint8_t difference = 0;
     for (std::size_t index = 0; index < left.size(); ++index) {
-        difference += static_cast<std::uint8_t>(left[index] != right[index]);
+        difference += static_cast<std::uint8_t>(left.at(index) != right.at(index));
     }
     return difference == 0;
 }
@@ -81,7 +54,7 @@ Offer::~Offer()
     stop();
 }
 
-bool Offer::start(const QString& archivePath, const QString& instanceName, QString* error)
+bool Offer::start(const QString& archivePath, QString* error)
 {
     const QFileInfo archive(archivePath);
     if (!archive.isFile() || !archive.isReadable()) {
@@ -115,12 +88,6 @@ bool Offer::start(const QString& archivePath, const QString& instanceName, QStri
         *error = QObject::tr("Could not start the local-network share. Check whether a firewall is blocking Prism Launcher.");
         return false;
     }
-    m_discovery = std::make_unique<Advertiser>();
-    if (!m_discovery->start(instanceName, urls(), error)) {
-        m_discovery.reset();
-        stop();
-        return false;
-    }
     return true;
 }
 
@@ -129,10 +96,6 @@ void Offer::stop()
     if (m_server) {
         m_server->stop();
         m_server.reset();
-    }
-    if (m_discovery) {
-        m_discovery->stop();
-        m_discovery.reset();
     }
     m_capability.clear();
     m_archivePath.clear();

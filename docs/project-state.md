@@ -7,11 +7,11 @@ is in `docs/codemap.md`.
 | ID | Capability / observable outcome | State | Dependencies | Goals |
 |---|---|---|---|---|
 | S001 | The launcher manages and launches Minecraft instances | partial | — | G001 |
-| S002 | Instances can use the established archive import and export paths | partial | S001 | G001,G003 |
-| S003 | A selected instance can be explicitly offered on the local network | partial | S002 | G002 |
-| S004 | A recipient can find or enter an authorised LAN offer and import it | partial | S002,S003 | G002 |
-| S005 | LAN transfer uses a bounded capability and preserves the existing importer as archive authority | partial | S002,S003,S004 | G002,G003 |
-| S006 | LAN sharing has focused positive and negative verification | partial | S003,S004,S005 | G003 |
+| S002 | Instances can use the established archive import and export paths | verified | S001 | G001,G003 |
+| S003 | Every running launcher automatically advertises its instance catalogue on the LAN | verified | S002 | G002 |
+| S004 | A recipient can discover and import an available instance from the New Instance window | verified | S002,S003 | G002 |
+| S005 | LAN transfer uses a bounded capability and preserves the existing importer as archive authority | verified | S002,S003,S004 | G002,G003 |
+| S006 | LAN import has focused positive and negative verification | verified | S003,S004,S005 | G003 |
 | S007 | Players can select, configure, and manage compatible Java runtimes | partial | S001 | G001 |
 | S008 | Players can authenticate or use the launcher-supported account workflows | partial | S001 | G001 |
 | S009 | Players can browse and install supported mod-platform content | partial | S001 | G001 |
@@ -20,7 +20,7 @@ is in `docs/codemap.md`.
 
 ## Current focus
 
-S003 — Explicit local-network instance offers.
+S001 — Current end-to-end instance management and launch evidence.
 
 ## Capability details
 
@@ -34,49 +34,64 @@ the outcome.
 
 ### S002 — Established archive workflows
 
-Partial. `InstanceImportTask` owns URL/archive processing and
-`MMCZip::ExportToZipTask` owns ZIP writing.
+Verified. `InstanceImportTask` remains the sole URL/archive importer and
+`MMCZip::ExportToZipTask` remains the ZIP writer. A two-launcher run on
+2026-09-04 exported an instance on demand through the LAN service, imported it
+through `InstanceImportTask`, preserved its name, and reproduced a marker file
+byte-for-byte in the receiver's instance directory.
 
-Gap: a current combined regression proving their retained behavior once LAN
-sharing is added.
+Evidence: Clang `LanOffer`, `LanProtocol`, and `LanInstanceService` tests plus
+the 2026-09-04 two-launcher UI import.
 
-### S003 — Explicit LAN offer
+### S003 — Automatic LAN catalogue
 
-Partial. `Lan::ShareController` creates the instance archive and `Lan::Offer`
-owns the explicit temporary capability-protected local-network offer, while
-`LanShareDialog` exposes its Start and Stop actions. Active offers announce
-their capability URLs over a bounded UDP LAN-discovery channel. `LanOffer`
-proves a successful byte-for-byte transfer in the build environment.
+Verified. Application-owned `Lan::InstanceService` starts after the instance
+list loads, advertises every instance over the bounded LAN protocol, marks live
+instances unavailable, refreshes the catalogue periodically, and expires stale
+remote entries. Discovery and request traffic use separate fixed-discovery and
+ephemeral-control sockets so multiple launchers on one host do not misroute a
+request.
 
-Gap: the combined launcher build and live local-network transfer have not yet
-verified this source implementation.
+Evidence: Clang `LanProtocol` and `LanInstanceService` tests plus automatic
+discovery in the 2026-09-04 two-launcher UI run.
 
-### S004 — Authorised recipient import
+### S004 — Recipient LAN import
 
-Partial. `Add Instance -> Import from LAN...` listens only while its dialog is
-open, discovers active offers automatically, and hands the selected validated
-URL to the established `processURLs`/`InstanceImportTask` path.
+Verified. The New Instance window contains an `Import from LAN` page directly
+below `Import`. It lists automatically discovered instances, prevents selection
+of a running instance, requests preparation on demand, preserves the advertised
+instance name, and hands the capability URL to the established Import page. A
+two-launcher UI run on 2026-09-04 completed the import and displayed the new
+instance in the receiver.
 
-Gap: a live receiver import between two installed launchers has not yet
-verified this source implementation.
+Evidence: 2026-09-04 two-launcher UI import of `Family LAN Pack`, including its
+name and marker file in the receiver.
 
 ### S005 — Bounded transfer authority
 
-Partial. The offer creates a 256-bit capability URL, only serves its temporary
-archive while the dialog remains active, and stops its Lucent server on Stop or
-destruction. The focused test proves that a wrong capability receives 404.
+Verified. The sender creates a fresh 256-bit capability for one temporary
+archive, serves it with Lucent, rejects incorrect capabilities, and expires the
+offer automatically. The protocol reconstructs the HTTP host from the observed
+UDP sender rather than trusting a network-supplied host. Cancellation, timeout,
+and a source instance becoming live all terminate preparation without
+publishing a partial archive. The receiver delegates archive validation and
+creation to `InstanceImportTask`.
 
-Gap: combined transfer and rejection evidence has not yet verified the new
-boundary.
+Evidence: Clang `LanOffer`, `LanProtocol`, and `LanInstanceService` tests plus
+the 2026-09-04 end-to-end import.
 
-### S006 — LAN-sharing verification
+### S006 — LAN-import verification
 
-Partial. `LanOffer` verifies byte-exact archive transfer for a valid
-capability and 404 rejection for a wrong capability. The recipient's full
-`InstanceImportTask` workflow is still awaiting an installed-launcher run.
+Verified. `LanOffer` covers byte-exact transfer and wrong-capability rejection;
+`LanProtocol` covers valid round trips plus malformed, oversized, wrong-type,
+public-address, loopback, and unsafe-URL rejection; `LanInstanceService` covers
+catalogue discovery, ephemeral reply routing, request, cancellation, and ready
+handoff. All three focused tests pass in the Clang SDK build, and the 2026-09-04
+two-launcher UI run covers the shipping discovery-to-import path.
 
-Gap: install the finished launcher and verify a recipient import through the
-normal UI.
+Evidence: passing Clang `ctest -R
+'^(LanOffer|LanProtocol|LanInstanceService)$'` and the 2026-09-04 two-launcher
+UI run.
 
 ### S007 — Java runtime management
 

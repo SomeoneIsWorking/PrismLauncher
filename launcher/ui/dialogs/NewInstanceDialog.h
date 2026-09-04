@@ -36,6 +36,7 @@
 #pragma once
 
 #include <QDialog>
+#include <QUrl>
 
 #include "InstanceTask.h"
 #include "ui/pages/BasePageProvider.h"
@@ -65,6 +66,7 @@ class NewInstanceDialog : public QDialog, public BasePageProvider {
     void setSuggestedPack(const QString& name, QString version, InstanceTask* task = nullptr);
     void setSuggestedIconFromFile(const QString& path, const QString& name);
     void setSuggestedIcon(const QString& key);
+    void importFromLan(const QUrl& url, const QString& instanceName);
 
     InstanceTask* extractTask();
 

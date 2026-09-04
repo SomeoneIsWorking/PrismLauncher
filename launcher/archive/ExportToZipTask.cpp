@@ -22,6 +22,14 @@
 #include "FileSystem.h"
 
 namespace MMCZip {
+ExportToZipTask::~ExportToZipTask()
+{
+    if (m_buildZipFuture.isRunning()) {
+        m_buildZipFuture.cancel();
+        m_buildZipFuture.waitForFinished();
+    }
+}
+
 void ExportToZipTask::executeTask()
 {
     setStatus("Adding files...");

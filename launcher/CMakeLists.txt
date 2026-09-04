@@ -53,10 +53,12 @@ set(CORE_SOURCES
     InstanceImportTask.cpp
     lan/LanOffer.h
     lan/LanOffer.cpp
-    lan/LanDiscovery.h
-    lan/LanDiscovery.cpp
-    lan/LanShareController.h
-    lan/LanShareController.cpp
+    lan/LanNetwork.h
+    lan/LanNetwork.cpp
+    lan/LanProtocol.h
+    lan/LanProtocol.cpp
+    lan/LanInstanceService.h
+    lan/LanInstanceService.cpp
 
     # Resource downloading task
     ResourceDownloadTask.h
@@ -1043,6 +1045,8 @@ SET(LAUNCHER_SOURCES
 
     ui/pages/modplatform/ImportPage.cpp
     ui/pages/modplatform/ImportPage.h
+    ui/pages/modplatform/LanPage.cpp
+    ui/pages/modplatform/LanPage.h
 
     ui/pages/modplatform/OptionalModDialog.cpp
     ui/pages/modplatform/OptionalModDialog.h
@@ -1063,10 +1067,6 @@ SET(LAUNCHER_SOURCES
     ui/dialogs/CustomMessageBox.h
     ui/dialogs/ExportInstanceDialog.cpp
     ui/dialogs/ExportInstanceDialog.h
-    ui/dialogs/LanShareDialog.cpp
-    ui/dialogs/LanShareDialog.h
-    ui/dialogs/LanImportDialog.cpp
-    ui/dialogs/LanImportDialog.h
     ui/dialogs/ExportPackDialog.cpp
     ui/dialogs/ExportPackDialog.h
     ui/dialogs/ExportToModListDialog.cpp

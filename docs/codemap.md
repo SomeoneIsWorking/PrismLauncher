@@ -7,8 +7,9 @@
 | Export UI | Collects export selection and invokes archive export | `launcher/ui/dialogs/ExportInstanceDialog.*` | `ExportInstanceDialog::doExport` |
 | Main-window instance actions | Wires selected-instance commands to dialogs | `launcher/ui/MainWindow.*` | `MainWindow::on_actionExportInstanceZip_triggered` |
 | Desktop shortcut action | Creates a named desktop launch entry for the selected instance | `launcher/ui/MainWindow.*`, `launcher/minecraft/ShortcutUtils.*` | `MainWindow::on_actionCreateInstanceShortcut_triggered` |
-| LAN sharing | Owns offer lifecycle, authorisation, local transfer, and importer handoff | `launcher/lan/` | `Lan::ShareController`, `Lan::Offer` |
-| LAN sharing UI | Presents start/stop share and recipient import actions | `launcher/ui/dialogs/` | target: LAN share dialogs |
+| LAN discovery protocol | Owns private-interface selection and strict bounded catalogue/request messages | `launcher/lan/LanNetwork.*`, `launcher/lan/LanProtocol.*` | `Lan::privateIPv4Addresses`, `Lan::parseDatagram` |
+| LAN instance service | Owns automatic catalogue advertisement, remote expiry, on-demand archive preparation, capability offers, cancellation, and timeouts | `launcher/lan/LanInstanceService.*`, `launcher/lan/LanOffer.*` | `Lan::InstanceService::start`, `Lan::InstanceService::requestImport` |
+| LAN import UI | Presents discovered instances inside New Instance and hands a prepared URL to the established importer | `launcher/ui/pages/modplatform/LanPage.*`, `launcher/ui/dialogs/NewInstanceDialog.*` | `LanPage::prepareSelected`, `NewInstanceDialog::importFromLan` |
 
 ## Where does X go?
 
@@ -17,5 +18,5 @@
 - Archive validation and instance creation go through `InstanceImportTask`; a
   LAN recipient supplies it a URL rather than extracting files itself.
 - Local HTTP serving belongs in Lucent, consumed by `launcher/lan/`.
-- Main-window code only wires the selected action to the LAN UI; it does not
-  own transfer state or protocol policy.
+- The application owns one long-lived `Lan::InstanceService`; main-window code
+  does not own LAN lifecycle or protocol policy.
