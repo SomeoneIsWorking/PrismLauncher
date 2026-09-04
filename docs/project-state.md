@@ -16,7 +16,15 @@ is in `docs/codemap.md`.
 | S008 | Players can authenticate or use the launcher-supported account workflows | partial | S001 | G001 |
 | S009 | Players can browse and install supported mod-platform content | partial | S001 | G001 |
 | S010 | Players can configure launcher presentation, logging, and updates | partial | S001 | G001 |
-| S011 | A selected instance can create a desktop shortcut using its instance name | partial | S001 | G001 |
+| S011 | A selected instance can create a desktop shortcut using its instance name | verified | S001 | G001 |
+
+## Comparison baseline
+
+The comparison baseline is upstream Prism Launcher at this fork's imported
+upstream checkpoint (`3d01e09fc`). S003-S006 add automatic local-network
+instance import, while S011 changes the selected-instance desktop shortcut
+workflow. The other state items describe retained upstream launcher
+capabilities whose current evidence is tracked independently.
 
 ## Current focus
 
@@ -126,7 +134,12 @@ Gap: the user-facing updater workflow has not been verified.
 
 ### S011 — Direct desktop shortcut
 
-Partial. The selected-instance action creates a desktop shortcut directly with
-the instance name; it no longer opens a name or destination dialog.
+Verified. The selected-instance action creates a desktop shortcut directly
+with the instance name; it no longer opens a name or destination dialog. The
+Flatpak grants access to the standard desktop directory used by the existing
+cross-platform shortcut writer.
 
-Gap: the installed launcher's desktop integration still needs verification.
+Evidence: a packaged Flatpak run on 2026-09-04 created and registered
+`Codex Shortcut Verification.desktop` with the expected Flatpak launch command
+in one click and displayed only the completion message. The negative control
+proved that the prior manifest denied the same desktop write.
