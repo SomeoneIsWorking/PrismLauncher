@@ -59,7 +59,7 @@ class ImportPage : public QWidget, public BasePage {
     virtual bool shouldDisplay() const override;
     void retranslate() override;
 
-    void setUrl(const QString& url);
+    void setUrl(const QString& url, const QString& suggestedName = {});
     void openedImpl() override;
     void setExtraInfo(const QMap<QString, QString>& extra_info);
    private slots:
@@ -68,6 +68,7 @@ class ImportPage : public QWidget, public BasePage {
 
    private:
     QUrl modpackUrl() const;
+    void updateStateWithSuggestedName(const QString& suggestedName);
 
    private:
     Ui::ImportPage* ui = nullptr;

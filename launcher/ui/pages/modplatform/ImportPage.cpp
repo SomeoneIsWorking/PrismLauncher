@@ -41,6 +41,7 @@
 
 #include <QFileDialog>
 #include <QMimeDatabase>
+#include <QSignalBlocker>
 #include <QValidator>
 #include <utility>
 
@@ -100,6 +101,11 @@ void ImportPage::openedImpl()
 
 void ImportPage::updateState()
 {
+    updateStateWithSuggestedName({});
+}
+
+void ImportPage::updateStateWithSuggestedName(const QString& suggestedName)
+{
     if (!isOpened) {
         return;
     }
@@ -118,7 +124,8 @@ void ImportPage::updateState()
             if (fi.exists() && (isZip || isMRPack)) {
                 auto extra_info = QMap(m_extra_info);
                 qDebug() << "Pack Extra Info" << extra_info << m_extra_info;
-                dialog->setSuggestedPack(fi.completeBaseName(), new InstanceImportTask(url, this, std::move(extra_info)));
+                const auto name = suggestedName.isEmpty() ? fi.completeBaseName() : suggestedName;
+                dialog->setSuggestedPack(name, new InstanceImportTask(url, this, std::move(extra_info)));
                 dialog->setSuggestedIcon("default");
             }
         } else if (url.scheme() == "curseforge") {
@@ -183,7 +190,8 @@ void ImportPage::updateState()
             // hook, line and sinker.
             QFileInfo fi(url.fileName());
             auto extra_info = QMap(m_extra_info);
-            dialog->setSuggestedPack(fi.completeBaseName(), new InstanceImportTask(url, this, std::move(extra_info)));
+            const auto name = suggestedName.isEmpty() ? fi.completeBaseName() : suggestedName;
+            dialog->setSuggestedPack(name, new InstanceImportTask(url, this, std::move(extra_info)));
             dialog->setSuggestedIcon("default");
         }
     } else {
@@ -191,10 +199,11 @@ void ImportPage::updateState()
     }
 }
 
-void ImportPage::setUrl(const QString& url)
+void ImportPage::setUrl(const QString& url, const QString& suggestedName)
 {
+    const QSignalBlocker blocker(ui->modpackEdit);
     ui->modpackEdit->setText(url);
-    updateState();
+    updateStateWithSuggestedName(suggestedName);
 }
 
 void ImportPage::setExtraInfo(const QMap<QString, QString>& extra_info)

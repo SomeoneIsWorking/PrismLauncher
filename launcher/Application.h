@@ -85,6 +85,10 @@ namespace Meta {
 class Index;
 }
 
+namespace Lan {
+class InstanceService;
+}
+
 #if defined(APPLICATION)
 #undef APPLICATION
 #endif
@@ -134,6 +138,8 @@ class Application : public QApplication {
     JavaInstallList* javalist();
 
     InstanceList* instances() const { return m_instances.get(); }
+
+    Lan::InstanceService* lanInstanceService() const { return m_lanInstanceService.get(); }
 
     IconList* icons() const { return m_icons.get(); }
 
@@ -258,6 +264,7 @@ class Application : public QApplication {
 
     std::unique_ptr<SettingsObject> m_settings;
     std::unique_ptr<InstanceList> m_instances;
+    std::unique_ptr<Lan::InstanceService> m_lanInstanceService;
     std::unique_ptr<IconList> m_icons;
     std::unique_ptr<JavaInstallList> m_javalist;
     std::unique_ptr<TranslationsModel> m_translations;

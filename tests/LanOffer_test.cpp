@@ -11,6 +11,7 @@
 #include <QTimer>
 
 #include "lan/LanOffer.h"
+#include "lan/LanProtocol.h"
 
 namespace {
 
@@ -55,9 +56,9 @@ class LanOfferTest : public QObject {
 
 void LanOfferTest::streamsOnlyTheCapabilityUrl()
 {
-    QTemporaryDir directory(QDir::current().filePath("lan-offer-test-XXXXXX"));
+    const QTemporaryDir directory(QDir::current().filePath("lan-offer-test-XXXXXX"));
     QVERIFY2(directory.isValid(), "Could not create the test's temporary build-directory data.");
-    const QByteArray payload(128 * 1024, 'x');
+    const QByteArray payload(qsizetype{ 128 } * 1024, 'x');
     const auto archivePath = directory.filePath("instance.zip");
     QFile archive(archivePath);
     QVERIFY(archive.open(QIODevice::WriteOnly));
@@ -66,9 +67,11 @@ void LanOfferTest::streamsOnlyTheCapabilityUrl()
 
     Lan::Offer offer;
     QString error;
-    QVERIFY2(offer.start(archivePath, QStringLiteral("Test instance"), &error), qPrintable(error));
+    QVERIFY2(offer.start(archivePath, &error), qPrintable(error));
     const auto urls = offer.urls();
     QVERIFY(!urls.empty());
+    QVERIFY2(Lan::Offer::isLocalOfferUrl(urls.front(), &error), qPrintable(error));
+    QVERIFY(!Lan::makeTransferReadyDatagram(Lan::randomId(), urls.front()).isEmpty());
 
     const auto authorized = get(urls.front());
     QCOMPARE(authorized.error, QNetworkReply::NoError);

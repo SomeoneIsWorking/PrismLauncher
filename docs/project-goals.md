@@ -20,26 +20,30 @@ require a hosted account service.
 
 **Contributing state items:** S001, S002.
 
-## G002 — Direct, safe local-network instance sharing
+## G002 — Automatic local-network instance import
 
-**Outcome.** A player can explicitly share a selected instance with another
-Prism Launcher on the same LAN, and the recipient can import it through the
-same validated archive path used for ordinary imports.
+**Outcome.** A player can open Add Instance -> Import from LAN, see the
+instances in other running Prism Launchers on the same LAN, and import one
+without any sender-side sharing action.
 
 **Why it matters.** Family members should be able to share an instance without
 manually locating directories, copying files, or involving a cloud service.
 
 **Observable success conditions.**
 
-- Sharing is an explicit, visible action with a bounded lifetime and stop path.
-- The receiving launcher can discover or enter a local offer and import it.
-- Transfer access requires an unguessable capability, is scoped to the selected
-  archive, and is unavailable when sharing stops.
+- Every running launcher automatically advertises its instance catalogue on the
+  LAN without requiring an instance to be selected or shared first.
+- The receiving launcher lists the discovered instances under Add Instance ->
+  Import from LAN and can request an import directly.
+- A requested transfer is prepared on demand, uses an unguessable bounded
+  capability scoped to that archive, and expires automatically.
 - The existing importer remains the sole owner of archive validation and
   instance creation.
 
-**Constraints and non-goals.** No background listener, cloud relay, account
-exchange, unauthenticated LAN share, or alternate archive parser is in scope.
+**Constraints and non-goals.** No sender-side share toggle, share wizard, cloud
+relay, account exchange, permanent archive publication, or alternate archive
+parser is in scope. A live instance may be listed but must not be archived while
+it is running.
 
 **Contributing state items:** S003, S004, S005.
 

@@ -45,6 +45,7 @@
 
 #include "DataMigrationTask.h"
 #include "java/JavaInstallList.h"
+#include "lan/LanInstanceService.h"
 #include "net/PasteUpload.h"
 #include "tasks/Task.h"
 #include "tools/GenericProfiler.h"
@@ -979,6 +980,12 @@ Application::Application(int& argc, char** argv) : QApplication(argc, argv)
         qInfo() << "Loading Instances...";
         m_instances->loadList();
         qInfo() << "<> Instances loaded.";
+
+        m_lanInstanceService = std::make_unique<Lan::InstanceService>(m_instances.get(), m_dataPath, this);
+        QString lanError;
+        if (!m_lanInstanceService->start(&lanError)) {
+            qWarning() << "LAN instance discovery is unavailable:" << lanError;
+        }
     }
 
     // and accounts
@@ -1632,9 +1639,9 @@ void Application::controllerFinished()
         auto account = controller->accountToUse();
         auto offlineName = controller->offlineName();
         qWarning() << "Launch failed due to network error, restarting in offline mode...";
-        QMetaObject::invokeMethod(this, [this, instance, retryMode, target, account, offlineName] {
-            launch(instance, retryMode, target, account, offlineName);
-        }, Qt::QueuedConnection);
+        QMetaObject::invokeMethod(
+            this, [this, instance, retryMode, target, account, offlineName] { launch(instance, retryMode, target, account, offlineName); },
+            Qt::QueuedConnection);
         return;
     }
 

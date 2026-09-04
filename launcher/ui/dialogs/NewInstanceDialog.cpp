@@ -59,6 +59,7 @@
 
 #include "ui/pages/modplatform/CustomPage.h"
 #include "ui/pages/modplatform/ImportPage.h"
+#include "ui/pages/modplatform/LanPage.h"
 #include "ui/pages/modplatform/atlauncher/AtlPage.h"
 #include "ui/pages/modplatform/flame/FlamePage.h"
 #include "ui/pages/modplatform/ftb/FtbPage.h"
@@ -129,8 +130,8 @@ NewInstanceDialog::NewInstanceDialog(const QString& initialGroup,
     if (!url.isEmpty()) {
         QUrl actualUrl(url);
         m_container->selectPage("import");
-        importPage->setUrl(url);
         importPage->setExtraInfo(extra_info);
+        importPage->setUrl(url);
     }
 
     updateDialogState();
@@ -175,6 +176,7 @@ QList<BasePage*> NewInstanceDialog::getPages()
 
     pages.append(new CustomPage(this));
     pages.append(importPage);
+    pages.append(new LanPage(this));
     pages.append(new AtlPage(this));
     if (APPLICATION->capabilities() & Application::SupportsFlame)
         pages.append(new FlamePage(this));
@@ -248,6 +250,12 @@ void NewInstanceDialog::setSuggestedIcon(const QString& key)
     importIcon = false;
 
     ui->iconButton->setIcon(icon);
+}
+
+void NewInstanceDialog::importFromLan(const QUrl& url, const QString& instanceName)
+{
+    m_container->selectPage("import");
+    importPage->setUrl(url.toString(), instanceName);
 }
 
 InstanceTask* NewInstanceDialog::extractTask()
