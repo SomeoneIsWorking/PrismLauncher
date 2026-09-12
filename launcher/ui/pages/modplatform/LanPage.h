@@ -6,6 +6,7 @@
 #include "ui/pages/BasePage.h"
 
 class QLabel;
+class QComboBox;
 class QListWidget;
 class QListWidgetItem;
 class NewInstanceDialog;
@@ -31,6 +32,7 @@ class LanPage final : public QWidget, public BasePage {
    private slots:
     void reloadInstances();
     void prepareSelected();
+    void updateSelected();
     void refreshInstances();
     void transferReady(const QString& requestId, const QUrl& url);
     void transferFailed(const QString& requestId, const QString& reason);
@@ -38,13 +40,18 @@ class LanPage final : public QWidget, public BasePage {
 
    private:
     void cancelPendingRequest();
+    void requestSelected(const QString& updateTarget);
+    void reloadLocalInstances();
 
     NewInstanceDialog* m_dialog;
     Lan::InstanceService* m_service;
     QLabel* m_statusLabel;
     QListWidget* m_instances;
+    QComboBox* m_localInstances;
     QPushButton* m_refreshButton;
     QPushButton* m_prepareButton;
+    QPushButton* m_updateButton;
     QString m_selectedName;
     QString m_requestId;
+    QString m_updateTarget;
 };

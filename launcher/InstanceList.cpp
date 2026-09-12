@@ -35,6 +35,7 @@
  */
 
 #include "InstanceList.h"
+#include "lan/LanUpdate.h"
 
 #include <QDebug>
 #include <QDirIterator>
@@ -56,6 +57,7 @@
 #include "NullInstance.h"
 #include "WatchLock.h"
 #include "minecraft/MinecraftInstance.h"
+#include "minecraft/PackProfile.h"
 #include "settings/INISettingsObject.h"
 
 #ifdef Q_OS_WIN32
@@ -954,13 +956,23 @@ class InstanceStaging : public Task {
    private slots:
     void childSucceeded()
     {
-        unsigned sleepTime = backoff();
-        if (m_parent->commitStagedInstance(m_stagingPath, *m_child, m_child->group(), *m_child)) {
+        QString error;
+        if (m_parent->commitStagedInstance(m_stagingPath, *m_child, m_child->group(), *m_child, &error)) {
             m_backoffTimer.stop();
             emitSucceeded();
             return;
         }
+        if (m_child->replacesExisting()) {
+            m_backoffTimer.stop();
+            auto* original = m_parent->getInstanceById(m_child->originalInstanceID());
+            if (original != nullptr && QFileInfo::exists(original->instanceRoot())) {
+                m_parent->destroyStagingPath(m_stagingPath);
+            }
+            emitFailed(error.isEmpty() ? tr("Could not replace the local instance.") : error);
+            return;
+        }
         // we actually failed, retry?
+        unsigned sleepTime = backoff();
         if (sleepTime == maxBackoff) {
             m_backoffTimer.stop();
             emitFailed(tr("Failed to commit instance, even after multiple retries. It is being blocked by something."));
@@ -1027,7 +1039,8 @@ QString InstanceList::getStagedInstancePath()
 bool InstanceList::commitStagedInstance(const QString& path,
                                         const InstanceName& instanceName,
                                         QString groupName,
-                                        const InstanceTask& commiting)
+                                        const InstanceTask& commiting,
+                                        QString* error)
 {
     if (groupName.isEmpty() && !groupName.isNull())
         groupName = QString();
@@ -1048,7 +1061,34 @@ bool InstanceList::commitStagedInstance(const QString& path,
         WatchLock lock(m_watcher, m_instDir);
         QString destination = FS::PathCombine(m_instDir, instID);
 
-        if (should_override) {
+        if (commiting.replacesExisting()) {
+            auto* existing = getInstanceById(instID);
+            auto* minecraft = dynamic_cast<MinecraftInstance*>(existing);
+            if (!should_override || minecraft == nullptr || minecraft->isRunning()) {
+                if (error != nullptr) {
+                    *error = tr("The selected local Minecraft instance is missing, incompatible, or currently running.");
+                }
+                return false;
+            }
+            auto* profile = minecraft->getPackProfile();
+            if (!profile->saveNow()) {
+                if (error != nullptr) {
+                    *error = tr("Could not save local instance changes before updating it.");
+                }
+                return false;
+            }
+            QString replacementError;
+            if (!Lan::commitInstanceUpdate(destination, path, &replacementError)) {
+                if (error != nullptr) {
+                    *error = replacementError;
+                }
+                return false;
+            }
+            auto result = profile->reload(Net::Mode::Offline);
+            if (!result) {
+                qWarning() << "LAN update installed but could not refresh its pack profile:" << result.error;
+            }
+        } else if (should_override) {
             if (!FS::overrideFolder(destination, path)) {
                 qWarning() << "Failed to override" << path << "to" << destination;
                 return false;

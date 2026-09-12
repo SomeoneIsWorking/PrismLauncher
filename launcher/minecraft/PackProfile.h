@@ -137,7 +137,7 @@ class PackProfile : public QAbstractListModel {
     QString patchFilePathForUid(const QString& uid) const;
 
     /// if there is a save scheduled, do it now.
-    void saveNow();
+    bool saveNow();
 
     /// helper method, returns RuntimeContext of instance
     RuntimeContext runtimeContext();

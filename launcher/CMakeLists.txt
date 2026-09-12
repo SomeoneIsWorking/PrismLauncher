@@ -59,6 +59,8 @@ set(CORE_SOURCES
     lan/LanProtocol.cpp
     lan/LanInstanceService.h
     lan/LanInstanceService.cpp
+    lan/LanUpdate.h
+    lan/LanUpdate.cpp
 
     # Resource downloading task
     ResourceDownloadTask.h

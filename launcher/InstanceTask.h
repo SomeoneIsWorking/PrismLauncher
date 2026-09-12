@@ -52,6 +52,7 @@ class InstanceTask : public Task, public InstanceName {
     bool shouldOverride() const { return m_override_existing; }
 
     QString originalInstanceID() const { return m_original_instance_id; };
+    bool replacesExisting() const { return m_replace_existing; }
 
    protected:
     void setOverride(bool override, QString instance_id_to_override = {})
@@ -60,6 +61,7 @@ class InstanceTask : public Task, public InstanceName {
         if (!instance_id_to_override.isEmpty())
             m_original_instance_id = instance_id_to_override;
     }
+    void setReplaceExisting(bool replace) { m_replace_existing = replace; }
 
    protected: /* data */
     SettingsObject* m_globalSettings;
@@ -68,6 +70,7 @@ class InstanceTask : public Task, public InstanceName {
     QString m_stagingPath;
 
     bool m_override_existing = false;
+    bool m_replace_existing = false;
     bool m_confirm_update = true;
 
     QString m_original_instance_id;
