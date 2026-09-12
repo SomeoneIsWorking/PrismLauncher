@@ -19,7 +19,7 @@ is in `docs/codemap.md`.
 | S011 | A selected instance can create a desktop shortcut using its instance name | verified | S001 | G001 |
 | S012 | The fork's installed Flatpak checks and installs stable fork releases automatically | partial | S010 | G001 |
 | S013 | Flatpak launcher data can be copied into a native installation | partial | S001 | G001 |
-| S014 | Fork releases provide a Linux AppImage, Flatpak, and native macOS arm64 app | partial | S012 | G001 |
+| S014 | Fork releases provide a Linux AppImage, Flatpak, and native macOS arm64 app | verified | S012 | G001 |
 
 ## Comparison baseline
 
@@ -192,10 +192,11 @@ remains the installed target.
 
 ### S014 — Fork release packages
 
-Partial. The release workflow builds an AppImage, Flatpak, and native macOS
-arm64 `.app` bundle (distributed as a ZIP and DMG) and publishes them together
-for a `12.*` tag. It checks the app's architecture and bundle signature and
-publishes the Flatpak under the filename expected by Prism's in-app updater.
-
-Gap: the new hosted matrix and resulting 12.0.8 release artifacts have not yet
-completed verification.
+Verified. The tagged `12.0.8` run `34694873327` passed its AppImage, Flatpak,
+native macOS arm64 build/test/package, and publish jobs. The release contains
+`PrismLauncher-Linux-x86_64.AppImage` and its `.zsync` index,
+`PrismLauncher-12.0.8-x86_64.flatpak`, `PrismLauncher-macOS-arm64.app.zip`,
+`PrismLauncher-macOS-arm64.dmg`, and `SHA256SUMS`. CI checked the app executable's
+arm64 architecture and verified the bundle signature before publication. With
+no Apple certificate or notarization credentials configured, the macOS bundle
+uses ad-hoc signing and is not notarized.
