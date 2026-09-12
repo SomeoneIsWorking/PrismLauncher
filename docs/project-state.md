@@ -19,6 +19,7 @@ is in `docs/codemap.md`.
 | S011 | A selected instance can create a desktop shortcut using its instance name | verified | S001 | G001 |
 | S012 | The fork's installed Flatpak checks and installs stable fork releases automatically | partial | S010 | G001 |
 | S013 | Flatpak launcher data can be copied into a native installation | partial | S001 | G001 |
+| S014 | Fork releases provide a Linux AppImage, Flatpak, and native macOS arm64 app | partial | S012 | G001 |
 
 ## Comparison baseline
 
@@ -28,6 +29,7 @@ instance import, while S011 changes the selected-instance desktop shortcut
 workflow. The other state items describe retained upstream launcher
 capabilities whose current evidence is tracked independently. S012 and S013
 add fork-specific maintenance and an optional native-package migration path.
+S014 tracks the fork's release packages across Linux and Apple Silicon macOS.
 
 ## Current focus
 
@@ -187,3 +189,13 @@ data directory.
 
 Gap: the full real-user migration has not been executed because the Flatpak
 remains the installed target.
+
+### S014 — Fork release packages
+
+Partial. The release workflow builds an AppImage, Flatpak, and native macOS
+arm64 `.app` bundle (distributed as a ZIP and DMG) and publishes them together
+for a `12.*` tag. It checks the app's architecture and bundle signature and
+publishes the Flatpak under the filename expected by Prism's in-app updater.
+
+Gap: the new hosted matrix and resulting 12.0.8 release artifacts have not yet
+completed verification.
