@@ -174,10 +174,16 @@ the 12.0.7 release commit to the Clang-built local package was installed with
 `flatpak update`, preserving the 3.1 GB launcher data. A Flatpak mask on the app
 had hidden updates; it was removed after switching the origin to the fork. The
 packaged launcher now logs `Updates Enabled: Yes` and its packaged updater
-successfully checks the fork's GitHub release list. A synthetic older launcher
-produced update-available exit status 100 against the real 12.0.7 release.
+successfully checks the fork's GitHub release list. After release `12.0.8`, the
+installed `12.0.7` Flatpak's own updater returned update-available exit status
+100, selected `PrismLauncher-12.0.8-x86_64.flatpak`, downloaded and verified
+it, and installed it through the host Flatpak update path. `flatpak info` then
+reported `12.0.8`, origin `prism-fork-local`, commit `9d42c3c6e`, while the
+launcher data directory remained 3.1 GB.
 
-Gap: a future newer release has not yet passed the full in-app install path.
+Gap: the launcher's Update Available dialog and acceptance click have not yet
+been observed end-to-end; the same packaged updater was invoked directly for
+this install check.
 
 ### S013 — Optional native-package migration
 
