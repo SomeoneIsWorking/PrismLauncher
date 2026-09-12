@@ -37,6 +37,10 @@ On Linux, we also offer our own [Flatpak nightly repository](https://github.com/
 
 ### Updating this fork's Flatpak
 
+[Fork releases](https://github.com/SomeoneIsWorking/PrismLauncher/releases) provide
+the Linux Flatpak and AppImage plus a native macOS arm64 `.app` as a ZIP or DMG.
+The macOS build is ad-hoc signed and is not notarized.
+
 The fork's Flatpak uses Prism Launcher's own update check and Update Available
 dialog. Automatic checks are enabled by default; Check for Updates is also
 available in the launcher. When the player accepts a new stable release, the
