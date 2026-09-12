@@ -1,0 +1,168 @@
+name: Build fork releases
+
+on:
+  push:
+    branches: [main]
+    tags: ['12.*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  appimage:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/setup-dependencies
+        with:
+          build-type: Release
+          artifact-name: Linux
+          qt-version: 6.10.2
+      - name: Build and test with Clang
+        env:
+          ARTIFACT_NAME: Linux-Qt6
+          BUILD_PLATFORM: official
+          CC: clang
+          CXX: clang++
+        run: |
+          cmake --preset linux
+          cmake --build --preset linux --config Release
+          ctest --preset linux --build-config Release --output-on-failure
+      - uses: ./.github/actions/package/linux
+        with:
+          version: ${{ github.ref_name }}
+          build-type: Release
+          artifact-name: Linux
+          qt-version: 6.10.2
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          gpg-private-key-id: ${{ secrets.GPG_PRIVATE_KEY_ID }}
+      - name: Check AppImage and update index
+        run: |
+          appimage=$(find . -maxdepth 1 -name 'PrismLauncher-Linux-*.AppImage' -print -quit)
+          test -n "$appimage" && test -s "$appimage"
+          test -s "$appimage.zsync"
+          file "$appimage"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-appimage
+          path: |
+            PrismLauncher-Linux-*.AppImage
+            PrismLauncher-Linux-*.AppImage.zsync
+          if-no-files-found: error
+          compression-level: 0
+
+  macos_arm64:
+    runs-on: macos-15
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: ./.github/actions/setup-dependencies
+        with:
+          build-type: Release
+          artifact-name: macOS-arm64
+          qt-version: 6.9.3
+      - name: Build and test native arm64 app
+        env:
+          ARTIFACT_NAME: macOS-arm64-Qt6
+          BUILD_PLATFORM: official
+          MACOSX_DEPLOYMENT_TARGET: '12.0'
+        run: |
+          test "$(uname -m)" = arm64
+          cmake --preset macos -DCMAKE_OSX_ARCHITECTURES=arm64
+          cmake --build --preset macos --config Release
+          ctest --preset macos --build-config Release --output-on-failure
+      - uses: ./.github/actions/package/macos
+        with:
+          version: ${{ github.ref_name }}
+          build-type: Release
+          artifact-name: macOS-arm64
+          apple-codesign-cert: ${{ secrets.APPLE_CODESIGN_CERT }}
+          apple-codesign-password: ${{ secrets.APPLE_CODESIGN_PASSWORD }}
+          apple-codesign-id: ${{ secrets.APPLE_CODESIGN_ID }}
+          apple-notarize-apple-id: ${{ secrets.APPLE_NOTARIZE_APPLE_ID }}
+          apple-notarize-team-id: ${{ secrets.APPLE_NOTARIZE_TEAM_ID }}
+          apple-notarize-password: ${{ secrets.APPLE_NOTARIZE_PASSWORD }}
+          sparkle-ed25519-key: ${{ secrets.SPARKLE_ED25519_KEY }}
+      - name: Check native app bundle and signature
+        run: |
+          app='install/Prism Launcher.app'
+          test -d "$app"
+          test "$(lipo -archs "$app/Contents/MacOS/prismlauncher")" = arm64
+          codesign --verify --deep --strict "$app"
+          unzip -Z1 PrismLauncher.zip | grep -q '^Prism Launcher.app/Contents/MacOS/prismlauncher$'
+          test -s PrismLauncher.dmg
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-macos-arm64
+          path: |
+            PrismLauncher.zip
+            PrismLauncher.dmg
+          if-no-files-found: error
+          compression-level: 0
+
+  flatpak:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:kde-6.10
+      options: --privileged
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          submodules: recursive
+          persist-credentials: false
+      - uses: flatpak/flatpak-github-actions/flatpak-builder@aa777012a985fe1b1fd3e66ea2173609cf0c9a70 # v6.8
+        with:
+          bundle: prism-launcher.flatpak
+          manifest-path: org.prismlauncher.PrismLauncher.yml
+          cache: true
+          branch: stable
+          arch: x86_64
+      - name: Check Flatpak bundle
+        run: test -s prism-launcher.flatpak
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: release-flatpak
+          path: prism-launcher.flatpak
+          if-no-files-found: error
+          compression-level: 0
+
+  publish:
+    if: startsWith(github.ref, 'refs/tags/12.')
+    needs: [appimage, macos_arm64, flatpak]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-appimage
+          path: release
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-macos-arm64
+          path: release
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: release-flatpak
+          path: release
+      - name: Publish verified artifacts
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          mv release/PrismLauncher.zip release/PrismLauncher-macOS-arm64.app.zip
+          mv release/PrismLauncher.dmg release/PrismLauncher-macOS-arm64.dmg
+          mv release/prism-launcher.flatpak "release/PrismLauncher-$GITHUB_REF_NAME-x86_64.flatpak"
+          sha256sum release/* > release/SHA256SUMS
+          gh release create "$GITHUB_REF_NAME" release/* \
+            --verify-tag --title "Prism Launcher $GITHUB_REF_NAME" --generate-notes

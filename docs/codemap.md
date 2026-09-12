@@ -12,6 +12,7 @@
 | LAN import UI | Presents discovered instances inside New Instance and hands a prepared URL to the established importer | `launcher/ui/pages/modplatform/LanPage.*`, `launcher/ui/dialogs/NewInstanceDialog.*` | `LanPage::prepareSelected`, `NewInstanceDialog::importFromLan` |
 | Fork Flatpak updates | Selects and verifies fork release bundles, imports them into the local repository, and invokes the host Flatpak updater from Prism's existing update flow | `launcher/updater/prismupdater/FlatpakUpdate.*`, `launcher/updater/prismupdater/PrismUpdater.*`, `tools/setup_fork_flatpak.py` | `FlatpakUpdate::bundleProblem`, `FlatpakUpdate::installBundle` |
 | Native data migration | Copies the Flatpak launcher data to a native data root without overwriting either installation | `tools/migrate_flatpak_data.py` | `migrate` |
+| Fork release packaging | Builds and publishes AppImage, Flatpak, and macOS arm64 app artifacts from one tag | `.github/workflows/release.yml`, `.github/actions/package/{linux,macos}/action.yml` | `publish` job |
 
 ## Where does X go?
 
