@@ -20,11 +20,12 @@ require a hosted account service.
 
 **Contributing state items:** S001, S002.
 
-## G002 — Automatic local-network instance import
+## G002 — Automatic local-network instance import and update
 
 **Outcome.** A player can open Add Instance -> Import from LAN, see the
-instances in other running Prism Launchers on the same LAN, and import one
-without any sender-side sharing action.
+instances in other running Prism Launchers on the same LAN, and import one or
+update a selected existing local instance without any sender-side sharing
+action.
 
 **Why it matters.** Family members should be able to share an instance without
 manually locating directories, copying files, or involving a cloud service.
@@ -35,17 +36,20 @@ manually locating directories, copying files, or involving a cloud service.
   LAN without requiring an instance to be selected or shared first.
 - The receiving launcher lists the discovered instances under Add Instance ->
   Import from LAN and can request an import directly.
+- A receiver can update an explicitly selected, stopped local instance from a
+  LAN instance while keeping local worlds and player settings. A failed
+  download, extraction, or replacement leaves the installed instance usable.
 - A requested transfer is prepared on demand, uses an unguessable bounded
   capability scoped to that archive, and expires automatically.
 - The existing importer remains the sole owner of archive validation and
-  instance creation.
+  instance creation or staged update extraction.
 
 **Constraints and non-goals.** No sender-side share toggle, share wizard, cloud
 relay, account exchange, permanent archive publication, or alternate archive
 parser is in scope. A live instance may be listed but must not be archived while
 it is running.
 
-**Contributing state items:** S003, S004, S005.
+**Contributing state items:** S003, S004, S005, S015.
 
 ## G003 — Maintainable launcher ownership
 
@@ -62,4 +66,4 @@ positive and negative verification.
 **Constraints and non-goals.** This does not require rewriting unrelated Prism
 subsystems or inventing a second network stack.
 
-**Contributing state items:** S002, S005, S006.
+**Contributing state items:** S002, S005, S006, S015.

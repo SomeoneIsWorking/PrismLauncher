@@ -228,11 +228,15 @@ static PackProfile::Result loadPackProfile(PackProfile* parent,
 
 // BEGIN: save/load logic
 
-void PackProfile::saveNow()
+bool PackProfile::saveNow()
 {
-    if (saveIsScheduled() && save_internal()) {
+    if (saveIsScheduled()) {
+        if (!save_internal()) {
+            return false;
+        }
         d->m_saveTimer.stop();
     }
+    return true;
 }
 
 bool PackProfile::saveIsScheduled() const
@@ -925,7 +929,7 @@ bool PackProfile::installAgents_internal(QStringList filepaths)
         agent->setDisplayName(sourceInfo.completeBaseName());
         agent->setHint("local");
 
-        versionFile->agents.append(Agent{agent, QString()});
+        versionFile->agents.append(Agent{ agent, QString() });
 
         versionFile->name = targetName;
         versionFile->uid = targetId;

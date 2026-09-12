@@ -60,6 +60,17 @@ data directory, including accounts, instances, Java installations, settings,
 and saves. The migration rewrites launcher paths inside `.cfg` files, refuses
 to merge with existing native data, and leaves the Flatpak data untouched.
 
+### Importing or updating an instance from LAN
+
+Open **Add Instance → Import from LAN** while another Prism Launcher is running
+on the same local network. Select its instance and choose **Prepare selected**
+to import a new copy. To update an existing local instance, select it in the
+local-instance list and choose **Update local instance**. Both instances must
+be stopped. The update replaces mods and pack configuration while keeping the
+local instance name and launcher settings, worlds, screenshots, resource and
+shader packs, player options, and server list. A failed transfer or extraction
+leaves the local instance in place.
+
 ## Community & Support
 
 Feel free to create a GitHub issue if you find a bug or want to suggest a new feature. We have multiple community spaces where other community members can help you:

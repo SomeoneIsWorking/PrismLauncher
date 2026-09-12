@@ -38,6 +38,7 @@
 
 #include "Application.h"
 #include "FileSystem.h"
+#include "InstanceList.h"
 #include "NullInstance.h"
 
 #include "QObjectPtr.h"
@@ -45,6 +46,9 @@
 #include "archive/ExtractZipTask.h"
 #include "icons/IconList.h"
 #include "icons/IconUtils.h"
+#include "lan/LanUpdate.h"
+#include "minecraft/MinecraftInstance.h"
+#include "minecraft/PackProfile.h"
 
 #include "modplatform/flame/FlameInstanceCreationTask.h"
 #include "modplatform/modrinth/ModrinthInstanceCreationTask.h"
@@ -169,6 +173,10 @@ void InstanceImportTask::processZipPack()
     }
     if (m_modpackType == ModpackType::Unknown) {
         emitFailed(tr("Archive does not contain a recognized modpack type."));
+        return;
+    }
+    if (!m_lanUpdateTarget.isEmpty() && m_modpackType != ModpackType::MultiMC) {
+        emitFailed(tr("LAN updates require a complete Prism instance archive."));
         return;
     }
     setStatus(tr("Extracting modpack"));
@@ -341,6 +349,23 @@ void InstanceImportTask::processTechnic()
 
 void InstanceImportTask::processMultiMC()
 {
+    if (!m_lanUpdateTarget.isEmpty()) {
+        auto* existing = APPLICATION->instances()->getInstanceById(m_lanUpdateTarget);
+        if (existing == nullptr || existing->isRunning() || dynamic_cast<MinecraftInstance*>(existing) == nullptr) {
+            emitFailed(tr("The selected local Minecraft instance is missing, incompatible, or currently running."));
+            return;
+        }
+        setStatus(tr("Preserving local worlds and player settings"));
+        QString localRoot = existing->instanceRoot();
+        QString stagedRoot = m_stagingPath;
+        connect(&m_updateWatcher, &QFutureWatcher<QString>::finished, this, &InstanceImportTask::updatePrepared);
+        m_updateWatcher.setFuture(QtConcurrent::run([localRoot, stagedRoot] {
+            QString error;
+            return Lan::prepareInstanceUpdate(localRoot, stagedRoot, &error) ? QString() : error;
+        }));
+        return;
+    }
+
     QString configPath = FS::PathCombine(m_stagingPath, "instance.cfg");
     auto instanceSettings = std::make_unique<INISettingsObject>(configPath);
 
@@ -360,6 +385,26 @@ void InstanceImportTask::processMultiMC()
 
         installIcon(instance.instanceRoot(), m_instIcon);
     }
+    emitSucceeded();
+}
+
+void InstanceImportTask::updatePrepared()
+{
+    QString error = m_updateWatcher.result();
+    if (!error.isEmpty()) {
+        emitFailed(error);
+        return;
+    }
+    setStatus(tr("Validating downloaded instance"));
+    auto stagedSettings = std::make_unique<INISettingsObject>(FS::PathCombine(m_stagingPath, "instance.cfg"));
+    MinecraftInstance staged(m_globalSettings, std::move(stagedSettings), m_stagingPath);
+    auto profile = staged.getPackProfile()->reload(Net::Mode::Offline);
+    if (!profile) {
+        emitFailed(tr("The downloaded instance cannot be loaded: %1").arg(profile.error));
+        return;
+    }
+    setOverride(true, m_lanUpdateTarget);
+    setReplaceExisting(true);
     emitSucceeded();
 }
 

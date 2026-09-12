@@ -20,6 +20,7 @@ is in `docs/codemap.md`.
 | S012 | The fork's installed Flatpak checks and installs stable fork releases automatically | partial | S010 | G001 |
 | S013 | Flatpak launcher data can be copied into a native installation | partial | S001 | G001 |
 | S014 | Fork releases provide a Linux AppImage, Flatpak, and native macOS arm64 app | verified | S012 | G001 |
+| S015 | A recipient can update an existing stopped local instance from a LAN instance while preserving local player data | verified | S003,S005 | G002,G003 |
 
 ## Comparison baseline
 
@@ -30,6 +31,7 @@ workflow. The other state items describe retained upstream launcher
 capabilities whose current evidence is tracked independently. S012 and S013
 add fork-specific maintenance and an optional native-package migration path.
 S014 tracks the fork's release packages across Linux and Apple Silicon macOS.
+S015 adds LAN updates for an existing instance in addition to creating a copy.
 
 ## Current focus
 
@@ -206,3 +208,28 @@ native macOS arm64 build/test/package, and publish jobs. The release contains
 arm64 architecture and verified the bundle signature before publication. With
 no Apple certificate or notarization credentials configured, the macOS bundle
 uses ad-hoc signing and is not notarized.
+
+Evidence: GitHub Actions release run `34694873327` and the published `12.0.8`
+asset list, including the arm64 architecture and signature checks.
+
+### S015 — LAN update of an existing instance
+
+Verified. The LAN page lets a player choose a stopped local instance and
+confirm an update from a discovered sender. The existing archive importer
+downloads and extracts the complete Prism instance. A dedicated update owner
+preserves the local instance configuration, worlds, screenshots, resource and
+shader packs, options, and server list while replacing pack files in a staging
+directory. Commit renames the old instance aside and installs the staged tree,
+restoring the old tree on a failed install. The 2026-09-12 Clang build and all
+26 Qt tests pass, including removal of an obsolete mod, preservation of local
+world data, exclusion of the sender's world, and refusal of an incomplete
+archive. An isolated two-launcher GUI run updated `Local Pack` twice from
+`Remote Pack`: each transfer removed the older mod, installed the next one,
+kept the receiver's world, options, and name, and excluded the sender's world.
+The first run also imported a separate `Remote Pack` copy through the original
+action, retaining its sender world, and the second run reopened the updated
+local instance before applying another update.
+
+Evidence: the 2026-09-12 Clang SDK full build and 26-test suite, plus the
+isolated two-launcher GUI runs and byte-level checks of the receiver's mods,
+worlds, options, and instance configuration.

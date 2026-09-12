@@ -136,7 +136,11 @@ class InstanceList : public QAbstractListModel {
      * should_override is used when another similar instance already exists, and we want to override it
      * - for instance, when updating it.
      */
-    bool commitStagedInstance(const QString& keyPath, const InstanceName& instanceName, QString groupName, const InstanceTask&);
+    bool commitStagedInstance(const QString& keyPath,
+                              const InstanceName& instanceName,
+                              QString groupName,
+                              const InstanceTask&,
+                              QString* error = nullptr);
 
     /**
      * Destroy a previously created staging area given by @keyPath - used when creation fails.

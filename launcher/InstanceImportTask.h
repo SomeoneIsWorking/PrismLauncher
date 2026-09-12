@@ -46,6 +46,7 @@ class InstanceImportTask : public InstanceTask {
     explicit InstanceImportTask(const QUrl& sourceUrl, QWidget* parent = nullptr, QMap<QString, QString>&& extra_info = {});
     virtual ~InstanceImportTask() = default;
     bool abort() override;
+    void setLanUpdateTarget(const QString& instanceId) { m_lanUpdateTarget = instanceId; }
 
    protected:
     //! Entry point for tasks.
@@ -60,6 +61,7 @@ class InstanceImportTask : public InstanceTask {
    private slots:
     void processZipPack();
     void extractFinished();
+    void updatePrepared();
 
    private: /* data */
     QUrl m_sourceUrl;
@@ -80,4 +82,6 @@ class InstanceImportTask : public InstanceTask {
     // FIXME: nuke
     QWidget* m_parent;
     void downloadFromUrl();
+    QString m_lanUpdateTarget;
+    QFutureWatcher<QString> m_updateWatcher;
 };

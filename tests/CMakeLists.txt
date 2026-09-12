@@ -21,6 +21,9 @@ ecm_add_test(LanProtocol_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_M
 ecm_add_test(LanInstanceService_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
     TEST_NAME LanInstanceService)
 
+ecm_add_test(LanUpdate_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
+    TEST_NAME LanUpdate)
+
 ecm_add_test(GradleSpecifier_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
     TEST_NAME GradleSpecifier)
 
