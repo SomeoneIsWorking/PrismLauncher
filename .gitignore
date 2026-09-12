@@ -27,6 +27,7 @@ compile_commands.json
 # Build dirs
 build
 /build-*
+__pycache__/
 
 # Install dirs
 install

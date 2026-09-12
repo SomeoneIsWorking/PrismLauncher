@@ -17,6 +17,8 @@ is in `docs/codemap.md`.
 | S009 | Players can browse and install supported mod-platform content | partial | S001 | G001 |
 | S010 | Players can configure launcher presentation, logging, and updates | partial | S001 | G001 |
 | S011 | A selected instance can create a desktop shortcut using its instance name | verified | S001 | G001 |
+| S012 | The fork's installed Flatpak checks and installs stable fork releases automatically | partial | S010 | G001 |
+| S013 | Flatpak launcher data can be copied into a native installation | partial | S001 | G001 |
 
 ## Comparison baseline
 
@@ -24,7 +26,8 @@ The comparison baseline is upstream Prism Launcher at this fork's imported
 upstream checkpoint (`3d01e09fc`). S003-S006 add automatic local-network
 instance import, while S011 changes the selected-instance desktop shortcut
 workflow. The other state items describe retained upstream launcher
-capabilities whose current evidence is tracked independently.
+capabilities whose current evidence is tracked independently. S012 and S013
+add fork-specific maintenance and an optional native-package migration path.
 
 ## Current focus
 
@@ -155,3 +158,29 @@ Evidence: a packaged Flatpak run on 2026-09-04 created and registered
 `Codex Shortcut Verification.desktop` with the expected Flatpak launch command
 in one click and displayed only the completion message. The negative control
 proved that the prior manifest denied the same desktop write.
+
+### S012 — Fork Flatpak updates
+
+Partial. `tools/prism_fork_update.py` selects the latest stable release from
+`SomeoneIsWorking/PrismLauncher`, verifies its bundle size and GitHub SHA-256
+digest, and installs a newer version through a daily systemd user timer. A live
+check found the installed 12.0.7 equal to the fork's latest release on
+2026-09-12. The timer is installed for the current user and its first check
+completed successfully. A verified 12.0.7 release bundle was reinstalled
+through the exact updater install path; the installed version and the 3.1 GB
+launcher data remained intact. An attempted `--or-update --bundle` install
+failed against this bundle-origin deployment, so the updater uses Flatpak's
+tested `--reinstall --bundle` path.
+
+Gap: a future newer release has not yet passed an actual unattended update.
+
+### S013 — Optional native-package migration
+
+Partial. `tools/migrate_flatpak_data.py` offers dry-run and explicit copy modes.
+Focused tests proved that it copies instance data, remaps absolute launcher
+paths in `.cfg` files, preserves the Flatpak source, and refuses to overwrite
+existing native data. The dry run located the current user's 3.1 GB launcher
+data directory.
+
+Gap: the full real-user migration has not been executed because the Flatpak
+remains the installed target.
