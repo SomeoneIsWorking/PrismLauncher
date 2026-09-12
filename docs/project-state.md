@@ -200,16 +200,17 @@ remains the installed target.
 
 ### S014 — Fork release packages
 
-Verified. The tagged `12.0.8` run `34694873327` passed its AppImage, Flatpak,
+Verified. The tagged `12.0.9` run `34701999872` passed its AppImage, Flatpak,
 native macOS arm64 build/test/package, and publish jobs. The release contains
 `PrismLauncher-Linux-x86_64.AppImage` and its `.zsync` index,
-`PrismLauncher-12.0.8-x86_64.flatpak`, `PrismLauncher-macOS-arm64.app.zip`,
+`PrismLauncher-12.0.9-x86_64.flatpak`, `PrismLauncher-macOS-arm64.app.zip`,
 `PrismLauncher-macOS-arm64.dmg`, and `SHA256SUMS`. CI checked the app executable's
-arm64 architecture and verified the bundle signature before publication. With
+arm64 architecture and verified the bundle signature before publication. The
+published SHA256SUMS entries match GitHub's asset digests. With
 no Apple certificate or notarization credentials configured, the macOS bundle
 uses ad-hoc signing and is not notarized.
 
-Evidence: GitHub Actions release run `34694873327` and the published `12.0.8`
+Evidence: GitHub Actions release run `34701999872` and the published `12.0.9`
 asset list, including the arm64 architecture and signature checks.
 
 ### S015 — LAN update of an existing instance
