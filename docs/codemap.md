@@ -10,7 +10,7 @@
 | LAN discovery protocol | Owns private-interface selection and strict bounded catalogue/request messages | `launcher/lan/LanNetwork.*`, `launcher/lan/LanProtocol.*` | `Lan::privateIPv4Addresses`, `Lan::parseDatagram` |
 | LAN instance service | Owns automatic catalogue advertisement, remote expiry, on-demand archive preparation, capability offers, cancellation, and timeouts | `launcher/lan/LanInstanceService.*`, `launcher/lan/LanOffer.*` | `Lan::InstanceService::start`, `Lan::InstanceService::requestImport` |
 | LAN import UI | Presents discovered instances inside New Instance and hands a prepared URL to the established importer | `launcher/ui/pages/modplatform/LanPage.*`, `launcher/ui/dialogs/NewInstanceDialog.*` | `LanPage::prepareSelected`, `NewInstanceDialog::importFromLan` |
-| Fork Flatpak updates | Checks stable fork releases and installs verified bundles on a user timer | `tools/prism_fork_update.py` | `main` |
+| Fork Flatpak updates | Selects and verifies fork release bundles, imports them into the local repository, and invokes the host Flatpak updater from Prism's existing update flow | `launcher/updater/prismupdater/FlatpakUpdate.*`, `launcher/updater/prismupdater/PrismUpdater.*`, `tools/setup_fork_flatpak.py` | `FlatpakUpdate::bundleProblem`, `FlatpakUpdate::installBundle` |
 | Native data migration | Copies the Flatpak launcher data to a native data root without overwriting either installation | `tools/migrate_flatpak_data.py` | `migrate` |
 
 ## Where does X go?

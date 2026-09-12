@@ -38,6 +38,7 @@ struct GitHubReleaseAsset {
     QDateTime created_at;
     QDateTime updated_at;
     QString browser_download_url;
+    QString digest;
 
     bool isValid() { return id > 0; }
 };

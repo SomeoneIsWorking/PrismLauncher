@@ -1,5 +1,11 @@
 project(tests)
 
+if(Launcher_BUILD_UPDATER)
+    ecm_add_test(FlatpakUpdate_test.cpp ../launcher/updater/prismupdater/FlatpakUpdate.cpp
+        LINK_LIBRARIES Qt${QT_VERSION_MAJOR}::Core Qt${QT_VERSION_MAJOR}::Test TEST_NAME FlatpakUpdate)
+    target_include_directories(FlatpakUpdate PRIVATE "${CMAKE_SOURCE_DIR}/launcher")
+endif()
+
 ecm_add_test(FileSystem_test.cpp LINK_LIBRARIES Launcher_logic Qt${QT_VERSION_MAJOR}::Test
     TEST_NAME FileSystem)
 
