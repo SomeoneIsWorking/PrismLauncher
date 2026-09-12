@@ -35,6 +35,26 @@ Prebuilt Development builds are provided for **Linux**, **Windows** and **macOS*
 
 On Linux, we also offer our own [Flatpak nightly repository](https://github.com/PrismLauncher/flatpak). Most software centers are able to install it by opening [this link](https://flatpak.prismlauncher.org/prismlauncher-nightly.flatpakref).
 
+### Updating this fork's Flatpak
+
+The `SomeoneIsWorking/PrismLauncher` release bundles are installed directly,
+so the Flatpak installation has no repository that `flatpak update` can poll.
+Run `python3 tools/prism_fork_update.py enable-timer` once to enable a daily
+systemd user timer. It checks this fork's latest stable GitHub release and
+installs a newer x86_64/aarch64 bundle after checking GitHub's SHA-256 asset
+digest. `python3 tools/prism_fork_update.py check` reports availability without
+installing anything; add `--apply` to install immediately. The timer and its
+copy of the updater live in the user's systemd and data directories, so the
+checkout need not remain at the same path. Release builds must publish an asset
+named `PrismLauncher-VERSION-ARCH.flatpak` with its corresponding release tag.
+
+If switching to a native package such as AppImage, use
+`python3 tools/migrate_flatpak_data.py` to inspect the source and destination,
+then `python3 tools/migrate_flatpak_data.py --apply` to copy the full launcher
+data directory, including accounts, instances, Java installations, settings,
+and saves. The migration rewrites launcher paths inside `.cfg` files, refuses
+to merge with existing native data, and leaves the Flatpak data untouched.
+
 ## Community & Support
 
 Feel free to create a GitHub issue if you find a bug or want to suggest a new feature. We have multiple community spaces where other community members can help you:
