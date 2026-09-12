@@ -37,16 +37,17 @@ On Linux, we also offer our own [Flatpak nightly repository](https://github.com/
 
 ### Updating this fork's Flatpak
 
-The `SomeoneIsWorking/PrismLauncher` release bundles are installed directly,
-so the Flatpak installation has no repository that `flatpak update` can poll.
-Run `python3 tools/prism_fork_update.py enable-timer` once to enable a daily
-systemd user timer. It checks this fork's latest stable GitHub release and
-installs a newer x86_64/aarch64 bundle after checking GitHub's SHA-256 asset
-digest. `python3 tools/prism_fork_update.py check` reports availability without
-installing anything; add `--apply` to install immediately. The timer and its
-copy of the updater live in the user's systemd and data directories, so the
-checkout need not remain at the same path. Release builds must publish an asset
-named `PrismLauncher-VERSION-ARCH.flatpak` with its corresponding release tag.
+The fork's Flatpak uses Prism Launcher's own update check and Update Available
+dialog. Automatic checks are enabled by default; Check for Updates is also
+available in the launcher. When the player accepts a new stable release, the
+updater verifies the bundle's SHA-256 digest and invokes the host Flatpak
+installer through a local Flatpak repository. A direct bundle installation
+needs one initial binding: download the matching bundle from this fork's
+release, then run `python3 tools/setup_fork_flatpak.py /path/to/bundle.flatpak`
+to verify it and repeat with `--apply`. The setup preserves launcher data and
+removes a Flatpak update mask for this app. Subsequent updates use Prism's own
+update prompt; there is no background timer. Each release must publish
+`PrismLauncher-VERSION-ARCH.flatpak` under its version tag.
 
 If switching to a native package such as AppImage, use
 `python3 tools/migrate_flatpak_data.py` to inspect the source and destination,

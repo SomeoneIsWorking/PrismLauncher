@@ -45,6 +45,7 @@ namespace fs = std::filesystem;
 
 #include "DesktopServices.h"
 
+#include "updater/prismupdater/FlatpakUpdate.h"
 #include "updater/prismupdater/UpdaterDialogs.h"
 
 #include "FileSystem.h"
@@ -446,11 +447,6 @@ void PrismUpdaterApp::run()
         }
     }
 
-    if (m_isFlatpak) {
-        showFatalErrorMessage(tr("Updating flatpack not supported"), tr("Actions outside of checking if an update is available are not "
-                                                                        "supported when running the flatpak version of Prism Launcher."));
-        return;
-    }
     if (m_isAppimage) {
         bool result = true;
         if (need_update)
@@ -654,6 +650,16 @@ QList<GitHubReleaseAsset> PrismUpdaterApp::validReleaseArtifacts(const GitHubRel
 {
     QList<GitHubReleaseAsset> valid;
 
+    if (m_isFlatpak) {
+        const auto name = FlatpakUpdate::assetName(release.tag_name, QSysInfo::buildCpuArchitecture());
+        for (const auto& asset : release.assets) {
+            if (asset.name == name) {
+                valid.append(asset);
+            }
+        }
+        return valid;
+    }
+
     qDebug() << "Selecting best asset from" << release.tag_name << "for platform" << BuildConfig.BUILD_ARTIFACT
              << "portable:" << m_isPortable;
     if (BuildConfig.BUILD_ARTIFACT.isEmpty())
@@ -756,12 +762,22 @@ void PrismUpdaterApp::performUpdate(const GitHubRelease& release)
         return showFatalErrorMessage(tr("Failed to Download"), tr("Failed to download the selected asset."));
     }
 
+    if (m_isFlatpak) {
+        const auto problem = FlatpakUpdate::bundleProblem(selected_asset, file, m_prismRepoUrl.toString(), release.tag_name);
+        if (!problem.isEmpty()) {
+            return showFatalErrorMessage(tr("Invalid Flatpak Release"), problem);
+        }
+    }
+
     performInstall(file);
 }
 
 QFileInfo PrismUpdaterApp::downloadAsset(const GitHubReleaseAsset& asset)
 {
-    auto temp_dir = QDir::tempPath();
+    auto temp_dir = m_isFlatpak ? FS::PathCombine(m_dataPath, "prism_launcher_update_release") : QDir::tempPath();
+    if (m_isFlatpak && !FS::ensureFolderPathExists(temp_dir)) {
+        return {};
+    }
     auto file_url = QUrl(asset.browser_download_url);
     auto out_file_path = FS::PathCombine(temp_dir, file_url.fileName());
 
@@ -851,6 +867,16 @@ bool write_lock_file(const QString& path, QDateTime timestamp, QString from, QSt
 void PrismUpdaterApp::performInstall(QFileInfo file)
 {
     qDebug() << "starting install";
+    if (m_isFlatpak) {
+        const auto repositoryPath = QDir::cleanPath(QDir(m_dataPath).absoluteFilePath("../prism-fork-repo"));
+        const auto problem = FlatpakUpdate::installBundle(file.absoluteFilePath(), repositoryPath);
+        if (!problem.isEmpty()) {
+            return showFatalErrorMessage(tr("Flatpak Update Failed"),
+                                         problem + tr("\nVerified bundle retained at %1").arg(file.absoluteFilePath()));
+        }
+        QFile::remove(file.absoluteFilePath());
+        return exit(0);
+    }
     auto update_lock_path = FS::PathCombine(m_dataPath, ".prism_launcher_update.lock");
     QFileInfo update_lock(update_lock_path);
     if (update_lock.exists()) {
@@ -1158,9 +1184,8 @@ void PrismUpdaterApp::downloadReleasePage(const QString& api_url, int page)
     connect(download.get(), &Net::Download::failed, this, &PrismUpdaterApp::downloadError);
 
     m_current_task.reset(download);
-    connect(download.get(), &Net::Download::finished, this, [this]() {
-        qDebug() << "Download" << m_current_task->getUid().toString() << "finished";
-    });
+    connect(download.get(), &Net::Download::finished, this,
+            [this]() { qDebug() << "Download" << m_current_task->getUid().toString() << "finished"; });
 
     QCoreApplication::processEvents();
 
@@ -1201,6 +1226,7 @@ int PrismUpdaterApp::parseReleasePage(const QByteArray* response)
                 asset.created_at = QDateTime::fromString(Json::requireString(asset_obj, "created_at"), Qt::ISODate);
                 asset.updated_at = QDateTime::fromString(Json::requireString(asset_obj, "updated_at"), Qt::ISODate);
                 asset.browser_download_url = Json::requireString(asset_obj, "browser_download_url");
+                asset.digest = asset_obj["digest"].toString();
                 release.assets.append(asset);
             }
             m_releases.append(release);

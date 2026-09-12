@@ -161,18 +161,21 @@ proved that the prior manifest denied the same desktop write.
 
 ### S012 — Fork Flatpak updates
 
-Partial. `tools/prism_fork_update.py` selects the latest stable release from
-`SomeoneIsWorking/PrismLauncher`, verifies its bundle size and GitHub SHA-256
-digest, and installs a newer version through a daily systemd user timer. A live
-check found the installed 12.0.7 equal to the fork's latest release on
-2026-09-12. The timer is installed for the current user and its first check
-completed successfully. A verified 12.0.7 release bundle was reinstalled
-through the exact updater install path; the installed version and the 3.1 GB
-launcher data remained intact. An attempted `--or-update --bundle` install
-failed against this bundle-origin deployment, so the updater uses Flatpak's
-tested `--reinstall --bundle` path.
+Partial. The installed 12.0.7 Flatpak reports `Updates Enabled: No`: its
+manifest omitted `Launcher_BUILD_ARTIFACT`, and Prism's updater refused Flatpak
+installation even when a check succeeded. The fork manifest now enables Prism's
+existing Update Available flow, and `FlatpakUpdate` verifies a release bundle
+before importing it into a local Flatpak repository and invoking the host
+Flatpak updater. The prior external user timer has been disabled and removed.
+The current user's installation was bound to `prism-fork-local`; a change from
+the 12.0.7 release commit to the Clang-built local package was installed with
+`flatpak update`, preserving the 3.1 GB launcher data. A Flatpak mask on the app
+had hidden updates; it was removed after switching the origin to the fork. The
+packaged launcher now logs `Updates Enabled: Yes` and its packaged updater
+successfully checks the fork's GitHub release list. A synthetic older launcher
+produced update-available exit status 100 against the real 12.0.7 release.
 
-Gap: a future newer release has not yet passed an actual unattended update.
+Gap: a future newer release has not yet passed the full in-app install path.
 
 ### S013 — Optional native-package migration
 
