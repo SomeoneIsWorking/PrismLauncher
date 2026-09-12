@@ -66,6 +66,8 @@ void LanInstanceServiceTest::discoversAndNegotiatesWithAnIndependentControlPort(
     Lan::InstanceService service(&instances, directory.path());
     QString error;
     QVERIFY2(service.start(&error), qPrintable(error));
+    const auto addresses = Lan::privateLanAddresses();
+    QVERIFY(!addresses.isEmpty());
 
     QUdpSocket peer;
     QVERIFY(peer.bind(QHostAddress::AnyIPv4, 0));
@@ -75,7 +77,7 @@ void LanInstanceServiceTest::discoversAndNegotiatesWithAnIndependentControlPort(
     const Lan::Announcement announcement{
         .serviceId = serviceId(), .instanceId = publicInstanceId(), .instanceName = QStringLiteral("Family pack"), .available = true
     };
-    QCOMPARE(peer.writeDatagram(Lan::makeAnnouncementDatagram(announcement), QHostAddress::Broadcast, Lan::DiscoveryPort) > 0, true);
+    QCOMPARE(peer.writeDatagram(Lan::makeAnnouncementDatagram(announcement), addresses.front(), Lan::DiscoveryPort) > 0, true);
     QTRY_COMPARE_WITH_TIMEOUT(service.remoteInstances().size(), 1, 5000);
     const auto discovered = service.remoteInstances().front();
     QCOMPARE(discovered.serviceId, serviceId());
@@ -108,8 +110,6 @@ void LanInstanceServiceTest::discoversAndNegotiatesWithAnIndependentControlPort(
     QCOMPARE(std::get<Lan::ImportRequest>(requireMessage(secondRequest)).requestId, secondRequestId);
 
     QSignalSpy transferReady(&service, &Lan::InstanceService::transferReady);
-    const auto addresses = Lan::privateLanAddresses();
-    QVERIFY(!addresses.isEmpty());
     const QUrl offeredUrl(QStringLiteral("http://%1:32768/instance/%2").arg(addresses.front().toString(), capability()));
     const auto readyDatagram = Lan::makeTransferReadyDatagram(secondRequestId, offeredUrl);
     QVERIFY(!readyDatagram.isEmpty());
