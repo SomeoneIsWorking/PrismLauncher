@@ -76,6 +76,18 @@ def unmask() -> None:
         command("flatpak", "mask", "--user", "--remove", APP_ID)
 
 
+def import_bundle(repository: Path, bundle: Path) -> None:
+    """Import a verified bundle, then publish the repository's appstream branch.
+
+    ``build-import-bundle`` alone leaves the repository without appstream
+    metadata, so every later ``flatpak update`` without an explicit ref reports
+    ``No such ref 'appstream2/x86_64' in remote``. ``build-update-repo`` is the
+    canonical step that generates it.
+    """
+    command("flatpak", "build-import-bundle", str(repository), str(bundle))
+    command("flatpak", "build-update-repo", str(repository))
+
+
 def setup(bundle: Path, repository: Path) -> None:
     url = repository.as_uri()
     remotes = command("flatpak", "remotes", "--user", "--columns=name,url").splitlines()
@@ -92,7 +104,7 @@ def setup(bundle: Path, repository: Path) -> None:
     repository.mkdir(parents=True, exist_ok=True)
     if not (repository / "config").exists():
         command("ostree", "init", f"--repo={repository}", "--mode=archive-z2")
-    command("flatpak", "build-import-bundle", str(repository), str(bundle))
+    import_bundle(repository, bundle)
     if not existing:
         command("flatpak", "remote-add", "--user", "--no-gpg-verify", REMOTE, url)
 

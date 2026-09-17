@@ -181,7 +181,11 @@ installed `12.0.7` Flatpak's own updater returned update-available exit status
 100, selected `PrismLauncher-12.0.8-x86_64.flatpak`, downloaded and verified
 it, and installed it through the host Flatpak update path. `flatpak info` then
 reported `12.0.8`, origin `prism-fork-local`, commit `9d42c3c6e`, while the
-launcher data directory remained 3.1 GB.
+launcher data directory remained 3.1 GB. The repository now also publishes an
+appstream branch: an unref'd `flatpak update`/`upgrade` had failed with
+`No such ref 'appstream2/x86_64' in remote prism-fork-local`, and repository
+imports in both the setup tool and the in-app updater now finish with
+`flatpak build-update-repo` (issue #5).
 
 Gap: the launcher's Update Available dialog and acceptance click have not yet
 been observed end-to-end; the same packaged updater was invoked directly for
