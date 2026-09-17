@@ -96,6 +96,10 @@ QString installBundle(const QString& bundlePath, const QString& repositoryPath)
     if (!imported.succeeded) {
         return QStringLiteral("Could not import the verified bundle: %1").arg(imported.output);
     }
+    const auto finalized = runHostFlatpak({ "build-update-repo", repositoryPath });
+    if (!finalized.succeeded) {
+        return QStringLiteral("Could not publish the fork Flatpak repository metadata: %1").arg(finalized.output);
+    }
     const auto available = runHostFlatpak({ "remote-info", "--user", "--show-commit", remote, appId });
     if (!available.succeeded || available.output.isEmpty()) {
         return QStringLiteral("Could not read the imported Flatpak commit: %1").arg(available.output);
