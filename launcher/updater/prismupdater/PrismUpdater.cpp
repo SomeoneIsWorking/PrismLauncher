@@ -868,7 +868,7 @@ void PrismUpdaterApp::performInstall(QFileInfo file)
 {
     qDebug() << "starting install";
     if (m_isFlatpak) {
-        const auto repositoryPath = QDir::cleanPath(QDir(m_dataPath).absoluteFilePath("../prism-fork-repo"));
+        const auto repositoryPath = QDir::cleanPath(QDir(m_dataPath).absoluteFilePath("data/prism-fork-repo"));
         const auto problem = FlatpakUpdate::installBundle(file.absoluteFilePath(), repositoryPath);
         if (!problem.isEmpty()) {
             return showFatalErrorMessage(tr("Flatpak Update Failed"),
