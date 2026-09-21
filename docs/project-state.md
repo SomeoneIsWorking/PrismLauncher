@@ -189,7 +189,14 @@ imports in both the setup tool and the in-app updater now finish with
 
 Gap: the launcher's Update Available dialog and acceptance click have not yet
 been observed end-to-end; the same packaged updater was invoked directly for
-this install check.
+this install check. The repository path in `FlatpakUpdate::installBundle` was
+computed as `m_dataPath + "/../prism-fork-repo"` (resolving to
+`~/.var/app/prism-fork-repo`), but `tools/setup_fork_flatpak.py` creates the
+repository at `m_dataPath + "/data/prism-fork-repo"` (resolving to
+`~/.var/app/org.prismlauncher.PrismLauncher/data/prism-fork-repo`). This
+mismatch caused `installBundle` to always fail its first remote URL check.
+Fixed by changing the path to `"data/prism-fork-repo"` in
+`PrismUpdater.cpp:871`.
 
 ### S013 — Optional native-package migration
 
