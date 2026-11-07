@@ -77,7 +77,7 @@ modules:
         path: .
       - type: git
         url: https://github.com/SomeoneIsWorking/lucent.git
-        commit: ed2f25c63385838d2e604b16b452da0671064984
+        commit: cf7fd74a1518c29cad0c3f210f4b4c5fb9123eda
         dest: external/lucent
     post-install:
       - install -Dm755 ../flatpak/prime-run.sh /app/bin/prime-run

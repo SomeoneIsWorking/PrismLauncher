@@ -500,7 +500,7 @@ if(LUCENT_SOURCE_DIR)
 else()
     FetchContent_Declare(lucent
         GIT_REPOSITORY https://github.com/SomeoneIsWorking/lucent.git
-        GIT_TAG ed2f25c63385838d2e604b16b452da0671064984
+        GIT_TAG cf7fd74a1518c29cad0c3f210f4b4c5fb9123eda
     )
 endif()
 FetchContent_MakeAvailable(lucent)
