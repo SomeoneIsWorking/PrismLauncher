@@ -2,7 +2,6 @@ name: Build fork releases
 
 on:
   push:
-    branches: [main]
     tags: ['12.*']
   workflow_dispatch:
 
